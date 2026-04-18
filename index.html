@@ -69,7 +69,7 @@
         </div>
 
         <!-- Modal Import -->
-        <div id="import-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex items-center justify-center p-4">
+        <div id="import-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex-items-center justify-center p-4">
             <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                 <div class="text-center mb-4">
                     <i class="fas fa-cloud-upload-alt text-green-500 text-4xl mb-2"></i>
@@ -183,7 +183,7 @@
         
         let cachedTransactions = [];
         let cachedAttendance = [];
-        const SYNC_INTERVAL = 60000; // 1 menit
+        const SYNC_INTERVAL = 30000;
 
         // ==================== FUNGSI WAKTU ====================
         function getWIBForSheet() {
@@ -278,7 +278,7 @@
         const initDB = () => {
             return new Promise((resolve, reject) => {
                 try {
-                    const request = indexedDB.open("AttendancePOSDB", 36);
+                    const request = indexedDB.open("AttendancePOSDB", 37);
                     request.onupgradeneeded = (e) => {
                         db = e.target.result;
                         if (!db.objectStoreNames.contains("users")) 
@@ -342,6 +342,7 @@
                 };
                 const id = await dbAction('sync_queue', 'add', queueItem);
                 console.log(`📦 Added to queue: ${type} (id: ${id})`);
+                showToast(`📦 Data disimpan ke antrian offline`);
                 return true;
             } catch(e) {
                 console.error('Failed to add to queue:', e);
@@ -362,8 +363,9 @@
                 if (queue.length === 0) return;
                 
                 console.log(`🔄 Processing ${queue.length} pending items...`);
-                showToast(`🔄 Mengirim ${queue.length} data tertunda...`);
+                showToast(`🔄 Mengirim ${queue.length} data tertunda ke server...`);
                 
+                let successCount = 0;
                 for (const item of queue) {
                     try {
                         let endpointType = item.type;
@@ -382,15 +384,19 @@
                             })
                         });
                         
-                        if (response && response.ok) {
+                        const result = await response.json();
+                        if (result && result.success) {
                             await dbAction('sync_queue', 'delete', item.id);
+                            successCount++;
                             console.log(`✅ Queue item ${item.id} berhasil dikirim`);
                         } else {
                             item.retryCount++;
                             if (item.retryCount >= 5) {
                                 await dbAction('sync_queue', 'delete', item.id);
+                                console.log(`❌ Queue item ${item.id} gagal setelah 5x, dihapus`);
                             } else {
                                 await dbAction('sync_queue', 'put', item);
+                                console.log(`🔄 Queue item ${item.id} retry ${item.retryCount}/5`);
                             }
                         }
                     } catch(e) {
@@ -406,8 +412,12 @@
                 
                 const remaining = await dbAction('sync_queue', 'getAll');
                 if (remaining.length === 0) {
-                    showToast("✅ Semua data tersinkron!");
-                } else if (currentPage === 'settings') {
+                    showToast(`✅ Berhasil mengirim ${successCount} data ke server!`);
+                } else {
+                    showToast(`⚠️ ${remaining.length} data masih dalam antrian`, true);
+                }
+                
+                if (currentPage === 'settings') {
                     await renderSettings();
                 }
             } catch(e) {
@@ -428,12 +438,12 @@
                         processSyncQueue();
                     }
                 }
-            }, 10000);
+            }, 15000);
             
             window.addEventListener('online', () => {
                 console.log('🌐 Kembali online!');
                 updateOfflineIndicator();
-                showToast("📡 Koneksi kembali! Sinkronisasi data...");
+                showToast("📡 Koneksi kembali! Mengirim data tertunda...");
                 processSyncQueue();
                 syncFromServer(false);
             });
@@ -494,7 +504,7 @@
                     
                     if (seen.has(key)) {
                         toDelete.push(trx.id);
-                        console.log(`🗑️ Duplicate found: ${trx.id} (key: ${key})`);
+                        console.log(`🗑️ Duplicate found: ${trx.id}`);
                     } else {
                         seen.set(key, trx.id);
                     }
@@ -552,13 +562,12 @@
                     
                     for (const id of toDelete) {
                         await dbAction('transactions', 'delete', id);
-                        console.log(`✅ Deleted local transaction ${id}`);
                     }
                     
                     if (toDelete.length > 0) {
                         await loadCache();
                         refreshCurrentPage();
-                        if (showMsg) showToast(`✅ ${toDelete.length} transaksi dihapus dari lokal (sudah dihapus dari server)`);
+                        if (showMsg) showToast(`✅ ${toDelete.length} transaksi dihapus dari lokal`);
                     } else if (showMsg) {
                         showToast("✅ Tidak ada transaksi yang perlu dihapus");
                     }
@@ -640,7 +649,7 @@
             }
             
             try {
-                await fetch(GAS_WEB_APP_URL, {
+                const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -650,10 +659,20 @@
                         payload: data
                     })
                 });
-                console.log(`✅ Sync ${type} ok`);
+                
+                const result = await response.json();
+                if (result && result.success) {
+                    console.log(`✅ Sync ${type} ok ke server`);
+                    return true;
+                } else {
+                    console.error(`Sync ${type} failed:`, result);
+                    await addToSyncQueue(type, data);
+                    return false;
+                }
             } catch (e) { 
-                console.error(`Sync ${type} failed:`, e);
+                console.error(`Sync ${type} error:`, e);
                 await addToSyncQueue(type, data);
+                return false;
             }
         };
 
@@ -710,17 +729,13 @@
                         }
                     }
                     
-                    if (addedCount > 0) {
-                        console.log(`✅ Sync: ${addedCount} transaksi baru dari server`);
-                        if (showMsg) showToast(`✅ ${addedCount} transaksi baru dari server`);
+                    if (addedCount > 0 && showMsg) {
+                        showToast(`✅ ${addedCount} transaksi baru dari server`);
                     }
                 }
                 
-                // 2. Sync hapus transaksi (hapus lokal yang tidak ada di server)
-                const deletedCount = await syncDeletedTransactions(false);
-                if (deletedCount > 0 && showMsg) {
-                    showToast(`✅ ${deletedCount} transaksi dihapus dari lokal`);
-                }
+                // 2. Sync hapus transaksi
+                await syncDeletedTransactions(false);
                 
                 // 3. Sync absensi
                 await syncAttendanceFromServer(false);
@@ -729,8 +744,8 @@
                 await loadCache();
                 refreshCurrentPage();
                 
-                if (showMsg && !trxData?.data?.length && deletedCount === 0) {
-                    showToast("✅ Sinkronisasi selesai (tidak ada perubahan)");
+                if (showMsg) {
+                    showToast("✅ Sinkronisasi selesai");
                 }
             } catch (e) { 
                 console.error("Sync error:", e);
@@ -742,6 +757,7 @@
             setInterval(async () => {
                 if (currentUser && navigator.onLine) {
                     await syncFromServer(false);
+                    await processSyncQueue();
                 }
             }, SYNC_INTERVAL);
         };
@@ -913,7 +929,12 @@
                 localStorage.setItem('has_clocked_in', 'true');
                 localStorage.setItem('last_attendance_date', getTodayWIB());
                 
-                await syncToServer('attendance', clockData);
+                const success = await syncToServer('attendance', clockData);
+                if (!success) {
+                    showToast("⚠️ Absen disimpan lokal, akan sync saat online", true);
+                } else {
+                    showToast("✅ Absen berhasil!");
+                }
                 
                 showAbsenModal(clockData);
                 
@@ -957,9 +978,13 @@
                 trx.id = newId;
                 cachedTransactions.unshift(trx);
                 
-                await syncToServer('transaction', trx);
+                const success = await syncToServer('transaction', trx);
                 
-                showToast("✅ Transaksi Disimpan!");
+                if (!success) {
+                    showToast("⚠️ Transaksi disimpan lokal, akan sync saat online", true);
+                } else {
+                    showToast("✅ Transaksi Disimpan ke Server!");
+                }
                 
                 if (amountInput) {
                     amountInput.value = '';
@@ -1106,7 +1131,7 @@
                             <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-3 mb-3 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-clock text-yellow-600"></i>
-                                    <span class="text-sm text-yellow-700">${queueCount} data menunggu sync</span>
+                                    <span class="text-sm text-yellow-700">⚠️ ${queueCount} data menunggu dikirim ke server</span>
                                 </div>
                                 <button onclick="processSyncQueue()" class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs">
                                     Kirim Sekarang
@@ -1116,28 +1141,44 @@
                             <div class="bg-green-50 border border-green-300 rounded-xl p-3 mb-3">
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-check-circle text-green-600"></i>
-                                    <span class="text-sm text-green-700">Semua data tersinkron</span>
+                                    <span class="text-sm text-green-700">✅ Semua data tersinkron</span>
                                 </div>
                             </div>
                         `}
                     </div>
                     
                     <div class="space-y-3">
-                        <button onclick="syncFromServer(true)" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
-                            <i class="fas fa-sync-alt text-purple-500"></i> Sinkronisasi Data (Ambil dari Server)
+                        <!-- KIRIM DATA KE SERVER (PENTING!) -->
+                        <button onclick="processSyncQueue()" class="w-full p-4 bg-blue-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-blue-700 transition-all shadow-md">
+                            <i class="fas fa-upload"></i> 📤 KIRIM DATA KE SHEET (${queueCount})
                         </button>
-                        <button onclick="syncDeletedTransactions(true)" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
-                            <i class="fas fa-trash-restore text-red-500"></i> Hapus Transaksi Lokal (yang sudah dihapus dari Server)
+                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Kirim data offline ke Google Sheet</p>
+                        
+                        <!-- AMBIL DATA DARI SHEET -->
+                        <button onclick="syncFromServer(true)" class="w-full p-4 bg-green-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-green-700 transition-all shadow-md">
+                            <i class="fas fa-download"></i> 📥 AMBIL DATA DARI SHEET
                         </button>
-                        <button onclick="syncAttendanceFromServer(true)" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
-                            <i class="fas fa-calendar-check text-green-500"></i> Sinkron Absensi
+                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Ambil data dari Google Sheet ke HP</p>
+                        
+                        <!-- HAPUS TRANSAKSI LOKAL -->
+                        <button onclick="syncDeletedTransactions(true)" class="w-full p-4 bg-red-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-red-600 transition-all shadow-md">
+                            <i class="fas fa-trash-restore"></i> 🗑️ HAPUS TRANSAKSI LOKAL
                         </button>
-                        <button onclick="processSyncQueue()" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
-                            <i class="fas fa-paper-plane text-blue-500"></i> Kirim Data Tertunda (${queueCount})
+                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Hapus transaksi di HP yang sudah tidak ada di Sheet</p>
+                        
+                        <!-- BERSIHKAN DUPLIKAT -->
+                        <button onclick="cleanupDuplicateTransactions()" class="w-full p-4 bg-orange-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-orange-600 transition-all shadow-md">
+                            <i class="fas fa-broom"></i> 🧹 BERSIHKAN DUPLIKAT
                         </button>
-                        <button onclick="cleanupDuplicateTransactions()" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
-                            <i class="fas fa-broom text-orange-500"></i> Bersihkan Duplikat Transaksi
+                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Hapus transaksi ganda</p>
+                        
+                        <!-- SINKRON ABSENSI -->
+                        <button onclick="syncAttendanceFromServer(true)" class="w-full p-4 bg-purple-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-purple-600 transition-all shadow-md">
+                            <i class="fas fa-calendar-check"></i> 📅 SINKRON ABSENSI
                         </button>
+                        
+                        <div class="border-t border-gray-200 my-3"></div>
+                        
                         <button onclick="showImportUserModal()" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
                             <i class="fas fa-user-plus text-blue-500"></i> Import User Manual
                         </button>
