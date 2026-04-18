@@ -11,6 +11,7 @@
         .modal-backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         button:active { transform: scale(0.97); transition: transform 0.05s; }
         button.disabled, button:disabled { opacity: 0.5; pointer-events: none; }
+        .debug-console { background: #1e1e1e; color: #0f0; font-family: monospace; font-size: 10px; padding: 8px; border-radius: 8px; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
@@ -69,7 +70,7 @@
         </div>
 
         <!-- Modal Import -->
-        <div id="import-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex-items-center justify-center p-4">
+        <div id="import-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                 <div class="text-center mb-4">
                     <i class="fas fa-cloud-upload-alt text-green-500 text-4xl mb-2"></i>
@@ -169,7 +170,7 @@
         const RESET_PASSWORD = "rockyhijab";
         const ADMIN_PIN = "123456";
         
-        // ⚠️ GANTI URL INI DENGAN URL Google Apps Script BARU hasil deploy!
+        // ⚠️ GANTI URL INI DENGAN URL Google Apps Script ANDA!
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlK5mVPpge1PT-ydirLdsONIRDScU9JOoqRpk8NocMBho9UNGr_LhHH4hy2-coRQxYjw/exec";
 
         let currentUser = null;
@@ -183,7 +184,7 @@
         
         let cachedTransactions = [];
         let cachedAttendance = [];
-        const SYNC_INTERVAL = 30000;
+        let debugLogs = [];
 
         // ==================== FUNGSI WAKTU ====================
         function getWIBForSheet() {
@@ -257,6 +258,17 @@
             return new Intl.NumberFormat('id-ID').format(angka);
         }
 
+        function addDebugLog(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLogs.unshift(`[${timestamp}] ${msg}`);
+            if (debugLogs.length > 20) debugLogs.pop();
+            const debugEl = document.getElementById('debug-console');
+            if (debugEl) {
+                debugEl.innerHTML = debugLogs.map(l => `<div>${l}</div>`).join('');
+            }
+            console.log(msg);
+        }
+
         function updateOfflineIndicator() {
             const indicator = document.getElementById('offline-indicator');
             if (!indicator) return;
@@ -278,7 +290,7 @@
         const initDB = () => {
             return new Promise((resolve, reject) => {
                 try {
-                    const request = indexedDB.open("AttendancePOSDB", 37);
+                    const request = indexedDB.open("AttendancePOSDB", 38);
                     request.onupgradeneeded = (e) => {
                         db = e.target.result;
                         if (!db.objectStoreNames.contains("users")) 
@@ -292,7 +304,7 @@
                     };
                     request.onsuccess = (e) => {
                         db = e.target.result;
-                        console.log("✅ Database initialized");
+                        addDebugLog("✅ Database initialized");
                         resolve();
                     };
                     request.onerror = (e) => {
@@ -331,138 +343,41 @@
             });
         };
 
-        // ==================== QUEUE OFFLINE SYNC ====================
-        const addToSyncQueue = async (type, payload) => {
-            try {
-                const queueItem = {
-                    type: type,
-                    payload: payload,
-                    timestamp: getWIBForSheet(),
-                    retryCount: 0
-                };
-                const id = await dbAction('sync_queue', 'add', queueItem);
-                console.log(`📦 Added to queue: ${type} (id: ${id})`);
-                showToast(`📦 Data disimpan ke antrian offline`);
-                return true;
-            } catch(e) {
-                console.error('Failed to add to queue:', e);
+        // ==================== KIRIM KE SERVER (YANG PENTING!) ====================
+        const sendToServer = async (type, data) => {
+            if (GAS_WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) {
+                addDebugLog("⚠️ GAS URL belum diisi!");
                 return false;
             }
-        };
-
-        const processSyncQueue = async () => {
-            if (!navigator.onLine) {
-                console.log('📡 Offline, queue menunggu koneksi...');
-                return;
-            }
             
-            if (GAS_WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) return;
+            addDebugLog(`📤 Mengirim ${type} ke server...`);
             
             try {
-                const queue = await dbAction('sync_queue', 'getAll');
-                if (queue.length === 0) return;
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: type,
+                        user: currentUser?.username || data.user,
+                        timestamp: getWIBForSheet(),
+                        payload: data
+                    })
+                });
                 
-                console.log(`🔄 Processing ${queue.length} pending items...`);
-                showToast(`🔄 Mengirim ${queue.length} data tertunda ke server...`);
+                const result = await response.json();
+                addDebugLog(`📥 Response: ${JSON.stringify(result)}`);
                 
-                let successCount = 0;
-                for (const item of queue) {
-                    try {
-                        let endpointType = item.type;
-                        if (item.type === 'transaction') endpointType = 'transaction';
-                        else if (item.type === 'attendance') endpointType = 'attendance';
-                        else if (item.type === 'delete_transaction') endpointType = 'delete_transaction';
-                        
-                        const response = await fetch(GAS_WEB_APP_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: endpointType,
-                                user: currentUser?.username || item.payload.user,
-                                timestamp: getWIBForSheet(),
-                                payload: item.payload
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        if (result && result.success) {
-                            await dbAction('sync_queue', 'delete', item.id);
-                            successCount++;
-                            console.log(`✅ Queue item ${item.id} berhasil dikirim`);
-                        } else {
-                            item.retryCount++;
-                            if (item.retryCount >= 5) {
-                                await dbAction('sync_queue', 'delete', item.id);
-                                console.log(`❌ Queue item ${item.id} gagal setelah 5x, dihapus`);
-                            } else {
-                                await dbAction('sync_queue', 'put', item);
-                                console.log(`🔄 Queue item ${item.id} retry ${item.retryCount}/5`);
-                            }
-                        }
-                    } catch(e) {
-                        console.error(`Failed to sync queue item ${item.id}:`, e);
-                        item.retryCount++;
-                        if (item.retryCount < 5) {
-                            await dbAction('sync_queue', 'put', item);
-                        } else {
-                            await dbAction('sync_queue', 'delete', item.id);
-                        }
-                    }
-                }
-                
-                const remaining = await dbAction('sync_queue', 'getAll');
-                if (remaining.length === 0) {
-                    showToast(`✅ Berhasil mengirim ${successCount} data ke server!`);
+                if (result && result.success) {
+                    addDebugLog(`✅ ${type} berhasil dikirim ke server!`);
+                    return true;
                 } else {
-                    showToast(`⚠️ ${remaining.length} data masih dalam antrian`, true);
+                    addDebugLog(`❌ ${type} gagal: ${result.error}`);
+                    return false;
                 }
-                
-                if (currentPage === 'settings') {
-                    await renderSettings();
-                }
-            } catch(e) {
-                console.error('Process queue error:', e);
-            }
-        };
-
-        let queueCheckerInterval = null;
-
-        const startQueueChecker = () => {
-            if (queueCheckerInterval) clearInterval(queueCheckerInterval);
-            
-            queueCheckerInterval = setInterval(async () => {
-                if (navigator.onLine && currentUser) {
-                    const queue = await dbAction('sync_queue', 'getAll');
-                    if (queue.length > 0) {
-                        console.log(`📡 ${queue.length} item dalam antrian, memproses...`);
-                        processSyncQueue();
-                    }
-                }
-            }, 15000);
-            
-            window.addEventListener('online', () => {
-                console.log('🌐 Kembali online!');
-                updateOfflineIndicator();
-                showToast("📡 Koneksi kembali! Mengirim data tertunda...");
-                processSyncQueue();
-                syncFromServer(false);
-            });
-            
-            window.addEventListener('offline', () => {
-                console.log('📡 Offline mode aktif');
-                updateOfflineIndicator();
-                showToast("⚠️ Koneksi terputus! Data akan disimpan offline.", true);
-            });
-            
-            updateOfflineIndicator();
-        };
-
-        const getQueueCount = async () => {
-            try {
-                const queue = await dbAction('sync_queue', 'getAll');
-                return queue.length;
-            } catch(e) {
-                return 0;
+            } catch (e) {
+                addDebugLog(`❌ Error kirim ${type}: ${e.message}`);
+                return false;
             }
         };
 
@@ -483,54 +398,22 @@
                     localStorage.setItem('last_attendance_date', todayWIB);
                 }
                 
-                console.log(`📦 Cache: ${cachedTransactions.length} transaksi, ${cachedAttendance.length} absensi`);
+                addDebugLog(`📦 Cache: ${cachedTransactions.length} transaksi, ${cachedAttendance.length} absensi`);
             } catch(e) {
                 console.error("Load cache error:", e);
             }
         };
 
-        // ==================== CLEANUP DUPLICATE ====================
-        const cleanupDuplicateTransactions = async () => {
-            setLoading(true);
-            try {
-                const allTrx = await dbAction('transactions', 'getAll');
-                const userTrx = allTrx.filter(t => t.user === currentUser.username);
-                
-                const seen = new Map();
-                const toDelete = [];
-                
-                for (const trx of userTrx) {
-                    const key = trx.serverId ? trx.serverId.toString() : `${trx.amount}_${trx.note}_${trx.time}`;
-                    
-                    if (seen.has(key)) {
-                        toDelete.push(trx.id);
-                        console.log(`🗑️ Duplicate found: ${trx.id}`);
-                    } else {
-                        seen.set(key, trx.id);
-                    }
-                }
-                
-                for (const id of toDelete) {
-                    await dbAction('transactions', 'delete', id);
-                }
-                
-                await loadCache();
-                refreshCurrentPage();
-                showToast(`✅ Bersihkan duplikat: ${toDelete.length} transaksi dihapus`);
-            } catch(e) {
-                console.error("Cleanup error:", e);
-                showToast("Gagal membersihkan duplikat", true);
-            }
-            setLoading(false);
-        };
-
-        // ==================== SYNC DELETE DARI SERVER ====================
-        const syncDeletedTransactions = async (showMsg = false) => {
+        // ==================== SYNC DARI SERVER ====================
+        const syncFromServer = async (showMsg = false) => {
             if (!currentUser) return;
             if (!navigator.onLine) {
                 if (showMsg) showToast("Tidak ada koneksi internet", true);
                 return;
             }
+            
+            addDebugLog("🔄 Mengambil data dari server...");
+            if (showMsg) showToast("🔄 Mengambil data dari server...");
             
             try {
                 const url = `${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`;
@@ -538,228 +421,52 @@
                 const data = await response.json();
                 
                 if (data?.success && data.data) {
-                    const serverIds = new Set();
-                    for (const trx of data.data) {
-                        if (trx.user === currentUser.username) {
-                            serverIds.add(trx.id.toString());
-                        }
-                    }
+                    addDebugLog(`📥 Server mengirim ${data.data.length} transaksi`);
                     
                     const allLocal = await dbAction('transactions', 'getAll');
-                    const toDelete = [];
-                    
-                    for (const local of allLocal) {
-                        if (local.user === currentUser.username) {
-                            const hasServerId = local.serverId && serverIds.has(local.serverId.toString());
-                            const hasIdMatch = serverIds.has(local.id.toString());
-                            
-                            if (!hasServerId && !hasIdMatch) {
-                                toDelete.push(local.id);
-                                console.log(`🗑️ Local transaction ${local.id} not found on server, will delete`);
-                            }
-                        }
-                    }
-                    
-                    for (const id of toDelete) {
-                        await dbAction('transactions', 'delete', id);
-                    }
-                    
-                    if (toDelete.length > 0) {
-                        await loadCache();
-                        refreshCurrentPage();
-                        if (showMsg) showToast(`✅ ${toDelete.length} transaksi dihapus dari lokal`);
-                    } else if (showMsg) {
-                        showToast("✅ Tidak ada transaksi yang perlu dihapus");
-                    }
-                    
-                    return toDelete.length;
-                }
-            } catch(e) {
-                console.error("Sync deleted transactions error:", e);
-                if (showMsg) showToast("⚠️ Gagal sync hapus transaksi", true);
-                return 0;
-            }
-        };
-
-        // ==================== SYNC DARI SERVER ====================
-        const syncAttendanceFromServer = async (showMsg = false) => {
-            if (!currentUser) return;
-            if (showMsg) showToast("🔄 Sinkronisasi absensi...");
-            try {
-                if (!navigator.onLine) {
-                    if (showMsg) showToast("Tidak ada koneksi internet", true);
-                    return false;
-                }
-                
-                const url = `${GAS_WEB_APP_URL}?action=get&type=attendance&user=${currentUser.username}&t=${Date.now()}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data?.success && data.data && data.data.length > 0) {
-                    const allLocal = await dbAction('attendance', 'getAll');
-                    for (const local of allLocal) {
-                        if (local.user === currentUser.username) {
-                            await dbAction('attendance', 'delete', local.id);
-                        }
-                    }
-                    
-                    for (const att of data.data) {
-                        let attendanceTime = att.time;
-                        if (attendanceTime && (attendanceTime.includes('T') || attendanceTime.includes('Z'))) {
-                            const utcDate = new Date(attendanceTime);
-                            const wibDate = new Date(utcDate.getTime() + (7 * 60 * 60 * 1000));
-                            attendanceTime = wibDate.toISOString().replace('T', ' ').slice(0, 19);
-                        }
-                        
-                        if (!attendanceTime || attendanceTime === '') {
-                            attendanceTime = getWIBForSheet();
-                        }
-                        
-                        await dbAction('attendance', 'add', {
-                            id: att.id,
-                            user: att.user,
-                            name: att.name,
-                            time: attendanceTime,
-                            loc: att.lat && att.lng ? { lat: att.lat, lng: att.lng } : null
-                        });
-                    }
-                    
-                    await loadCache();
-                    refreshCurrentPage();
-                    
-                    if (showMsg) showToast(`✅ Sinkron absensi: ${data.data.length} record`);
-                    return true;
-                } else {
-                    if (showMsg) showToast("Tidak ada data absensi di server");
-                    return false;
-                }
-            } catch (e) { 
-                console.error("Error sync attendance:", e);
-                if (showMsg && navigator.onLine) showToast("⚠️ Gagal sync absensi", true);
-                return false;
-            }
-        };
-
-        const syncToServer = async (type, data) => {
-            if (GAS_WEB_APP_URL.includes("YOUR_DEPLOYMENT_ID")) return;
-            
-            if (!navigator.onLine) {
-                await addToSyncQueue(type, data);
-                return;
-            }
-            
-            try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: type,
-                        user: currentUser?.username || 'system',
-                        timestamp: getWIBForSheet(),
-                        payload: data
-                    })
-                });
-                
-                const result = await response.json();
-                if (result && result.success) {
-                    console.log(`✅ Sync ${type} ok ke server`);
-                    return true;
-                } else {
-                    console.error(`Sync ${type} failed:`, result);
-                    await addToSyncQueue(type, data);
-                    return false;
-                }
-            } catch (e) { 
-                console.error(`Sync ${type} error:`, e);
-                await addToSyncQueue(type, data);
-                return false;
-            }
-        };
-
-        const syncFromServer = async (showMsg = false) => {
-            if (!currentUser) return;
-            if (!navigator.onLine) {
-                if (showMsg) showToast("Tidak ada koneksi internet", true);
-                return;
-            }
-            if (showMsg) showToast("🔄 Sinkronisasi data dari server...");
-            
-            try {
-                // 1. Sync transaksi baru dari server
-                const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`;
-                const trxResponse = await fetch(trxUrl);
-                const trxData = await trxResponse.json();
-                
-                if (trxData?.success && trxData.data) {
-                    const allLocal = await dbAction('transactions', 'getAll');
-                    const existingServerIds = new Set();
+                    const existingIds = new Set();
                     
                     for (const local of allLocal) {
                         if (local.user === currentUser.username && local.serverId) {
-                            existingServerIds.add(local.serverId.toString());
+                            existingIds.add(local.serverId.toString());
                         }
                     }
                     
                     let addedCount = 0;
-                    for (const trx of trxData.data) {
+                    for (const trx of data.data) {
                         if (trx.user === currentUser.username) {
                             const serverIdStr = trx.id.toString();
-                            
-                            if (!existingServerIds.has(serverIdStr)) {
-                                const existsByContent = allLocal.some(local => 
-                                    local.user === currentUser.username &&
-                                    local.amount === trx.amount &&
-                                    local.note === trx.note &&
-                                    local.time === trx.time
-                                );
-                                
-                                if (!existsByContent) {
-                                    await dbAction('transactions', 'add', {
-                                        id: trx.id,
-                                        user: trx.user,
-                                        name: trx.name,
-                                        amount: trx.amount,
-                                        note: trx.note,
-                                        time: trx.time,
-                                        serverId: trx.id
-                                    });
-                                    addedCount++;
-                                }
+                            if (!existingIds.has(serverIdStr)) {
+                                await dbAction('transactions', 'add', {
+                                    id: trx.id,
+                                    user: trx.user,
+                                    name: trx.name,
+                                    amount: trx.amount,
+                                    note: trx.note,
+                                    time: trx.time,
+                                    serverId: trx.id
+                                });
+                                addedCount++;
                             }
                         }
                     }
                     
-                    if (addedCount > 0 && showMsg) {
-                        showToast(`✅ ${addedCount} transaksi baru dari server`);
+                    if (addedCount > 0) {
+                        addDebugLog(`✅ ${addedCount} transaksi baru dari server`);
+                        if (showMsg) showToast(`✅ ${addedCount} transaksi baru dari server`);
                     }
                 }
                 
-                // 2. Sync hapus transaksi
-                await syncDeletedTransactions(false);
-                
-                // 3. Sync absensi
-                await syncAttendanceFromServer(false);
-                
-                // 4. Reload cache dan refresh UI
                 await loadCache();
                 refreshCurrentPage();
                 
-                if (showMsg) {
-                    showToast("✅ Sinkronisasi selesai");
+                if (showMsg && !data?.data?.length) {
+                    showToast("✅ Sinkron selesai (tidak ada data baru)");
                 }
             } catch (e) { 
-                console.error("Sync error:", e);
+                addDebugLog(`❌ Sync error: ${e.message}`);
                 if (showMsg) showToast("⚠️ Gagal sync", true); 
             }
-        };
-
-        const startAutoSync = () => {
-            setInterval(async () => {
-                if (currentUser && navigator.onLine) {
-                    await syncFromServer(false);
-                    await processSyncQueue();
-                }
-            }, SYNC_INTERVAL);
         };
 
         const refreshCurrentPage = async () => {
@@ -863,16 +570,16 @@
                 await dbAction('transactions', 'delete', transactionToDelete.id);
                 cachedTransactions = cachedTransactions.filter(t => t.id !== transactionToDelete.id);
                 
-                const deletePayload = { 
+                await sendToServer('delete_transaction', { 
                     id: transactionToDelete.id, 
                     serverId: transactionToDelete.serverId ? transactionToDelete.serverId.toString() : transactionToDelete.id.toString(),
                     user: currentUser.username
-                };
-                await syncToServer('delete_transaction', deletePayload);
+                });
                 
                 await renderHistory();
                 await updateBonusUI();
                 showToast("✅ Transaksi berhasil dihapus!");
+                addDebugLog(`🗑️ Transaksi ${transactionToDelete.id} dihapus`);
             } catch (e) { 
                 console.error('Delete error:', e);
                 showToast("Gagal menghapus transaksi: " + e.message, true); 
@@ -929,11 +636,11 @@
                 localStorage.setItem('has_clocked_in', 'true');
                 localStorage.setItem('last_attendance_date', getTodayWIB());
                 
-                const success = await syncToServer('attendance', clockData);
-                if (!success) {
-                    showToast("⚠️ Absen disimpan lokal, akan sync saat online", true);
-                } else {
+                const success = await sendToServer('attendance', clockData);
+                if (success) {
                     showToast("✅ Absen berhasil!");
+                } else {
+                    showToast("⚠️ Absen disimpan lokal, akan sync nanti", true);
                 }
                 
                 showAbsenModal(clockData);
@@ -948,7 +655,7 @@
             setLoading(false);
         };
 
-        // ==================== TRANSAKSI ====================
+        // ==================== TRANSAKSI (YANG PENTING!) ====================
         const handleTransaction = async () => {
             if (!(await hasClockedInToday())) {
                 showToast("❌ Absen dulu sebelum transaksi!", true);
@@ -974,16 +681,22 @@
                     note: note || "Transaksi", 
                     time: getWIBForSheet()
                 };
+                
+                addDebugLog(`💳 Transaksi: Rp ${amount} - ${note}`);
+                
                 const newId = await dbAction('transactions', 'add', trx);
                 trx.id = newId;
                 cachedTransactions.unshift(trx);
                 
-                const success = await syncToServer('transaction', trx);
+                // KIRIM KE SERVER!
+                const success = await sendToServer('transaction', trx);
                 
-                if (!success) {
-                    showToast("⚠️ Transaksi disimpan lokal, akan sync saat online", true);
-                } else {
+                if (success) {
                     showToast("✅ Transaksi Disimpan ke Server!");
+                    addDebugLog(`✅ Transaksi ${newId} berhasil ke server`);
+                } else {
+                    showToast("⚠️ Transaksi disimpan lokal, akan sync nanti", true);
+                    addDebugLog(`⚠️ Transaksi ${newId} gagal ke server, tersimpan lokal`);
                 }
                 
                 if (amountInput) {
@@ -1001,6 +714,7 @@
             } catch (e) { 
                 console.error('Transaksi error:', e);
                 showToast("Gagal transaksi", true); 
+                addDebugLog(`❌ Error: ${e.message}`);
             }
             setLoading(false);
         };
@@ -1105,8 +819,6 @@
 
         // ==================== RENDER SETTINGS ====================
         const renderSettings = async () => {
-            const queueCount = await getQueueCount();
-            const isOnline = navigator.onLine;
             const content = document.getElementById('page-content');
             if (!content) return;
             
@@ -1119,65 +831,28 @@
                         <h3 class="font-bold text-lg">${escapeHtml(currentUser.name)}</h3>
                         <p class="text-xs text-gray-400">@${currentUser.username}</p>
                         <div class="mt-2 flex justify-center gap-2">
-                            <span class="text-xs ${isOnline ? 'text-green-600' : 'text-red-600'}">
-                                <i class="fas ${isOnline ? 'fa-wifi' : 'fa-wifi-slash'}"></i> ${isOnline ? 'Online' : 'Offline'}
+                            <span class="text-xs ${navigator.onLine ? 'text-green-600' : 'text-red-600'}">
+                                <i class="fas ${navigator.onLine ? 'fa-wifi' : 'fa-wifi-slash'}"></i> ${navigator.onLine ? 'Online' : 'Offline'}
                             </span>
                             <button onclick="editProfile()" class="text-xs text-blue-600 border border-blue-200 px-3 py-1 rounded-full">✏️ Edit Profil</button>
                         </div>
                     </div>
                     
-                    <div id="queue-status-container">
-                        ${queueCount > 0 ? `
-                            <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-3 mb-3 flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-clock text-yellow-600"></i>
-                                    <span class="text-sm text-yellow-700">⚠️ ${queueCount} data menunggu dikirim ke server</span>
-                                </div>
-                                <button onclick="processSyncQueue()" class="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs">
-                                    Kirim Sekarang
-                                </button>
-                            </div>
-                        ` : `
-                            <div class="bg-green-50 border border-green-300 rounded-xl p-3 mb-3">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-check-circle text-green-600"></i>
-                                    <span class="text-sm text-green-700">✅ Semua data tersinkron</span>
-                                </div>
-                            </div>
-                        `}
+                    <div class="bg-gray-900 rounded-xl p-3 mb-4">
+                        <p class="text-white text-xs font-bold mb-2">📡 KONSOLE DEBUG</p>
+                        <div id="debug-console" class="debug-console" style="background:#1e1e1e; color:#0f0; font-family:monospace; font-size:10px; padding:8px; border-radius:8px; max-height:150px; overflow-y:auto;">
+                            ${debugLogs.map(l => `<div>${l}</div>`).join('') || '<div>Menunggu aktivitas...</div>'}
+                        </div>
                     </div>
                     
                     <div class="space-y-3">
-                        <!-- KIRIM DATA KE SERVER (PENTING!) -->
-                        <button onclick="processSyncQueue()" class="w-full p-4 bg-blue-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-blue-700 transition-all shadow-md">
-                            <i class="fas fa-upload"></i> 📤 KIRIM DATA KE SHEET (${queueCount})
-                        </button>
-                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Kirim data offline ke Google Sheet</p>
-                        
-                        <!-- AMBIL DATA DARI SHEET -->
-                        <button onclick="syncFromServer(true)" class="w-full p-4 bg-green-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-green-700 transition-all shadow-md">
-                            <i class="fas fa-download"></i> 📥 AMBIL DATA DARI SHEET
-                        </button>
-                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Ambil data dari Google Sheet ke HP</p>
-                        
-                        <!-- HAPUS TRANSAKSI LOKAL -->
-                        <button onclick="syncDeletedTransactions(true)" class="w-full p-4 bg-red-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-red-600 transition-all shadow-md">
-                            <i class="fas fa-trash-restore"></i> 🗑️ HAPUS TRANSAKSI LOKAL
-                        </button>
-                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Hapus transaksi di HP yang sudah tidak ada di Sheet</p>
-                        
-                        <!-- BERSIHKAN DUPLIKAT -->
-                        <button onclick="cleanupDuplicateTransactions()" class="w-full p-4 bg-orange-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-orange-600 transition-all shadow-md">
-                            <i class="fas fa-broom"></i> 🧹 BERSIHKAN DUPLIKAT
-                        </button>
-                        <p class="text-[10px] text-gray-400 -mt-2 mb-2 ml-2">↳ Hapus transaksi ganda</p>
-                        
-                        <!-- SINKRON ABSENSI -->
-                        <button onclick="syncAttendanceFromServer(true)" class="w-full p-4 bg-purple-500 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-purple-600 transition-all shadow-md">
-                            <i class="fas fa-calendar-check"></i> 📅 SINKRON ABSENSI
+                        <button onclick="syncFromServer(true)" class="w-full p-4 bg-blue-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-blue-700 transition-all">
+                            <i class="fas fa-download"></i> 📥 AMBIL DATA DARI SERVER
                         </button>
                         
-                        <div class="border-t border-gray-200 my-3"></div>
+                        <button onclick="testConnection()" class="w-full p-4 bg-purple-600 text-white rounded-xl flex items-center gap-3 text-sm font-bold active:bg-purple-700 transition-all">
+                            <i class="fas fa-plug"></i> 🔌 TEST KONEKSI KE SERVER
+                        </button>
                         
                         <button onclick="showImportUserModal()" class="w-full p-4 bg-white border rounded-xl flex items-center gap-3 text-sm font-medium active:bg-gray-50 transition-all">
                             <i class="fas fa-user-plus text-blue-500"></i> Import User Manual
@@ -1194,6 +869,50 @@
                     </div>
                 </div>
             `;
+        };
+
+        // ==================== TEST KONEKSI ====================
+        const testConnection = async () => {
+            setLoading(true);
+            addDebugLog("🔌 Testing koneksi ke server...");
+            showToast("🔄 Testing koneksi...");
+            
+            try {
+                const testData = {
+                    user: currentUser?.username || 'test',
+                    name: 'Test User',
+                    amount: 1000,
+                    note: 'Test koneksi',
+                    time: getWIBForSheet()
+                };
+                
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'transaction',
+                        user: currentUser?.username || 'test',
+                        timestamp: getWIBForSheet(),
+                        payload: testData
+                    })
+                });
+                
+                const result = await response.json();
+                addDebugLog(`📥 Response: ${JSON.stringify(result)}`);
+                
+                if (result && result.success) {
+                    showToast("✅ Koneksi ke server BERHASIL!");
+                    addDebugLog("✅ Test koneksi BERHASIL!");
+                } else {
+                    showToast("❌ Koneksi gagal: " + (result.error || 'Unknown'), true);
+                    addDebugLog(`❌ Test koneksi GAGAL: ${result.error}`);
+                }
+            } catch (e) {
+                showToast("❌ Gagal koneksi ke server", true);
+                addDebugLog(`❌ Error: ${e.message}`);
+            }
+            
+            setLoading(false);
         };
 
         // ==================== RENDER HISTORY ====================
@@ -1678,7 +1397,7 @@
                 currentUser.name = n; 
                 currentUser.pin = p;
                 await dbAction('users', 'put', currentUser);
-                await syncToServer('profile_update', currentUser);
+                await sendToServer('profile_update', currentUser);
                 showToast("✅ Profil diupdate");
                 router.navigate('settings');
             }
@@ -1697,7 +1416,7 @@
                 else {
                     const userData = { name, username: user, pin, createdAt: getWIBForSheet() };
                     await dbAction('users', 'add', userData);
-                    await syncToServer('register', userData);
+                    await sendToServer('register', userData);
                     showToast("✅ Pendaftaran berhasil!");
                     router.navigate('login');
                 }
@@ -1727,11 +1446,6 @@
                     if (verify && verify.pin === userData.pin) {
                         currentUser = verify;
                         await loadCache();
-                        
-                        if (navigator.onLine) {
-                            await syncFromServer(false);
-                            await loadCache();
-                        }
                         return true;
                     }
                 } catch(e) {
@@ -1763,7 +1477,7 @@
                             const sheetUser = result.data[0];
                             await dbAction('users', 'put', sheetUser);
                             userData = sheetUser;
-                            console.log(`✅ User ${user} disinkron dari sheet`);
+                            addDebugLog(`✅ User ${user} disinkron dari sheet`);
                         }
                     } catch (e) {
                         console.warn('Gagal sync dari sheet:', e);
@@ -1776,10 +1490,6 @@
                         username: userData.username, 
                         pin: userData.pin 
                     }));
-                    
-                    if (navigator.onLine) {
-                        await syncFromServer(false);
-                    }
                     
                     await loadCache();
                     
@@ -2129,6 +1839,10 @@
         // ==================== INIT ====================
         window.onload = async () => {
             try {
+                addDebugLog("🚀 Aplikasi dimulai...");
+                addDebugLog(`🌐 Status Online: ${navigator.onLine}`);
+                addDebugLog(`🔗 GAS URL: ${GAS_WEB_APP_URL.substring(0, 50)}...`);
+                
                 await initDB();
                 
                 const fileInput = document.getElementById('import-user-file');
@@ -2136,17 +1850,26 @@
                     fileInput.addEventListener('change', handleUserFileUpload);
                 }
                 
-                startQueueChecker();
+                window.addEventListener('online', () => {
+                    addDebugLog("🌐 Koneksi ONLINE");
+                    updateOfflineIndicator();
+                });
+                
+                window.addEventListener('offline', () => {
+                    addDebugLog("📡 Koneksi OFFLINE");
+                    updateOfflineIndicator();
+                });
+                
+                updateOfflineIndicator();
                 
                 if (await checkExistingSession()) {
                     router.navigate('home');
-                    startAutoSync();
-                    processSyncQueue();
                 } else {
                     router.navigate('login');
                 }
             } catch(e) {
                 console.error("Init error:", e);
+                addDebugLog(`❌ Error: ${e.message}`);
                 showToast("Error loading app: " + e.message, true);
             }
         };
