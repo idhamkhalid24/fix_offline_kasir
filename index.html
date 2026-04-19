@@ -101,11 +101,23 @@
         }
         .hadir { background: #dcfce7; color: #166534; }
         .tidak-hadir { background: #fee2e2; color: #991b1b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+        }
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
         
         <!-- Header -->
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 sm:mb-6 text-white">
@@ -116,7 +128,7 @@
                     </div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi & absensi staff</p>
+                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi & absensi staff (Admin bebas transaksi)</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -235,6 +247,13 @@
         </div>
     </div>
 
+    <!-- Floating Tombol Tambah Transaksi -->
+    <div class="floating-btn">
+        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 rounded-full shadow-lg btn-touch">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
+    </div>
+
     <!-- Drawer Overlay -->
     <div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
 
@@ -280,38 +299,63 @@
         </div>
     </div>
 
-    <!-- Drawer Backup -->
+    <!-- Drawer Backup & Restore -->
     <div id="drawer-backup" class="drawer">
         <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
             <h2 class="text-lg font-bold text-gray-800">
-                <i class="fas fa-clipboard text-purple-500 mr-2"></i> Backup Data User
+                <i class="fas fa-clipboard text-purple-500 mr-2"></i> Backup & Restore Data
             </h2>
             <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
         <div class="p-4">
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700">Pilih User</label>
-                <select id="backup-user-select" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
-                    <option value="">-- Pilih User --</option>
-                </select>
+            <!-- Backup Section -->
+            <div class="mb-6">
+                <h3 class="text-sm font-bold text-gray-700 mb-3">📤 Backup Data</h3>
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-700">Pilih User</label>
+                    <select id="backup-user-select" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
+                        <option value="">-- Pilih User --</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-700">Periode Data</label>
+                    <select id="backup-period" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
+                        <option value="all">📅 Semua Waktu</option>
+                        <option value="month">📈 Bulan Ini</option>
+                        <option value="week">📊 Minggu Ini</option>
+                        <option value="today">📅 Hari Ini</option>
+                    </select>
+                </div>
+                <button onclick="backupSelectedUser()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch flex items-center justify-center gap-2">
+                    <i class="fas fa-clipboard"></i> Backup ke Clipboard
+                </button>
             </div>
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700">Periode Data</label>
-                <select id="backup-period" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
-                    <option value="all">📅 Semua Waktu</option>
-                    <option value="month">📈 Bulan Ini</option>
-                    <option value="week">📊 Minggu Ini</option>
-                    <option value="today">📅 Hari Ini</option>
-                </select>
+
+            <!-- Divider -->
+            <div class="border-t my-4"></div>
+
+            <!-- Restore Section -->
+            <div>
+                <h3 class="text-sm font-bold text-gray-700 mb-3">📥 Restore Data ke Sheet</h3>
+                <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
+                    <p class="text-[10px] text-yellow-700 text-center">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> 
+                        Restore akan mengirim data dari clipboard ke Google Sheet.<br>
+                        Hanya data BARU yang akan ditambahkan (cegah duplikasi).
+                    </p>
+                </div>
+                <button onclick="restoreToSheet()" class="w-full py-3 bg-red-600 text-white rounded-xl font-medium btn-touch flex items-center justify-center gap-2">
+                    <i class="fas fa-database"></i> Restore dari Clipboard ke Sheet
+                </button>
             </div>
-            <button onclick="backupSelectedUser()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch flex items-center justify-center gap-2">
-                <i class="fas fa-clipboard"></i> Backup ke Clipboard
-            </button>
-            
+
             <div class="mt-6 pt-4 border-t">
-                <p class="text-xs text-gray-400 text-center">Backup akan menyimpan data transaksi user dalam format JSON ke clipboard</p>
+                <p class="text-xs text-gray-400 text-center">
+                    Format backup kompatibel dengan aplikasi karyawan.<br>
+                    <code>{"version":"7.0","data":{"users":[...],"transactions":[...],"attendance":[...]}}</code>
+                </p>
             </div>
         </div>
     </div>
@@ -370,6 +414,14 @@
         </div>
     </div>
 
+    <!-- Modal Loading -->
+    <div id="loading-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl p-6 text-center">
+            <div class="loading-spinner mx-auto mb-3"></div>
+            <p id="loading-text" class="text-sm text-gray-600">Memproses...</p>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="max-width: 90vw; text-align: center;">
         Notifikasi
@@ -409,16 +461,6 @@
                 const [date, time] = dateTimeStr.split(' ');
                 const [year, month, day] = date.split('-');
                 return `${day}/${month} ${time.slice(0,5)}`;
-            }
-            return dateTimeStr;
-        }
-
-        function formatFullDateTime(dateTimeStr) {
-            if (!dateTimeStr) return '-';
-            if (dateTimeStr.includes(' ')) {
-                const [date, time] = dateTimeStr.split(' ');
-                const [year, month, day] = date.split('-');
-                return `${day}/${month}/${year} ${time.slice(0,5)}`;
             }
             return dateTimeStr;
         }
@@ -492,6 +534,17 @@
                 toast.classList.remove('scale-100');
                 toast.classList.add('scale-0');
             }, 3000);
+        }
+
+        function showLoading(show, text = 'Memproses...') {
+            const modal = document.getElementById('loading-modal');
+            const textEl = document.getElementById('loading-text');
+            if (show) {
+                textEl.innerText = text;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
         }
 
         // Drawer Functions
@@ -784,18 +837,6 @@
                 });
         }
 
-        function getUserAttendanceCountThisMonth(username) {
-            return getUserAttendanceThisMonth(username).length;
-        }
-
-        function getUserAttendanceDatesThisMonth(username) {
-            const attendance = getUserAttendanceThisMonth(username);
-            return attendance.map(a => ({
-                date: (a.time || '').slice(0, 10),
-                time: a.time
-            }));
-        }
-
         function updateTotalAttendanceStat() {
             const startOfMonth = getStartOfMonth();
             const today = getTodayDate();
@@ -832,25 +873,19 @@
                 return;
             }
             
-            // Hitung total hadir per user
             const attendanceData = allUsers.map(user => {
                 const attendanceRecords = getUserAttendanceThisMonth(user.username);
                 const hadirCount = attendanceRecords.length;
                 const persentase = totalWorkDays > 0 ? Math.round((hadirCount / totalWorkDays) * 100) : 0;
-                const attendanceDates = attendanceRecords.map(a => ({
-                    date: (a.time || '').slice(0, 10),
-                    time: a.time
-                }));
                 
                 return {
                     ...user,
                     hadirCount,
                     persentase,
-                    attendanceDates
+                    attendanceRecords
                 };
             });
             
-            // Urutkan berdasarkan persentase kehadiran (tertinggi ke terendah)
             attendanceData.sort((a, b) => b.persentase - a.persentase);
             
             container.innerHTML = attendanceData.map(user => {
@@ -873,11 +908,11 @@
                             <div class="bg-green-500 h-2 rounded-full" style="width: ${user.persentase}%"></div>
                         </div>
                         <div class="flex flex-wrap gap-1 mt-2">
-                            ${user.attendanceDates.length > 0 ? 
-                                user.attendanceDates.map(att => `
+                            ${user.attendanceRecords.length > 0 ? 
+                                user.attendanceRecords.map(att => `
                                     <span class="attendance-badge hadir">
                                         <i class="fas fa-check-circle text-[8px]"></i>
-                                        ${att.date.slice(5)}
+                                        ${(att.time || '').slice(5, 10)}
                                     </span>
                                 `).join('') : 
                                 '<span class="attendance-badge tidak-hadir"><i class="fas fa-times-circle text-[8px]"></i> Belum pernah absen</span>'
@@ -898,33 +933,41 @@
             
             const userTransactions = allTransactions.filter(t => t.user === username);
             const userAttendance = allAttendance.filter(a => a.user === username);
-            const omzetThisMonth = getUserOmzetThisMonth(username);
-            const bonus = calculateBonus(omzetThisMonth);
             
             const backupData = {
-                type: "user_backup",
-                backupDate: getWIBTime(),
-                user: {
-                    username: user.username,
-                    name: user.name,
-                    pin: user.pin
-                },
-                statistics: {
-                    totalTransactions: userTransactions.length,
-                    totalOmzet: omzetThisMonth,
-                    bonusThisMonth: bonus,
-                    totalAttendance: userAttendance.length,
-                    period: getCurrentMonthYear()
-                },
-                transactions: userTransactions.sort((a, b) => (b.time || '').localeCompare(a.time || '')),
-                attendance: userAttendance.sort((a, b) => (b.time || '').localeCompare(a.time || ''))
+                version: "7.0",
+                timestamp: getWIBTime(),
+                data: {
+                    users: [{
+                        username: user.username,
+                        name: user.name,
+                        pin: user.pin,
+                        createdAt: getWIBTime()
+                    }],
+                    transactions: userTransactions.map(t => ({
+                        id: t.id,
+                        user: t.user,
+                        name: t.name,
+                        amount: t.amount,
+                        note: t.note,
+                        time: t.time
+                    })),
+                    attendance: userAttendance.map(a => ({
+                        id: a.id,
+                        user: a.user,
+                        name: a.name,
+                        time: a.time,
+                        lat: a.loc?.lat || null,
+                        lng: a.loc?.lng || null
+                    }))
+                }
             };
             
             const jsonStr = JSON.stringify(backupData, null, 2);
             
             try {
                 await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ Data ${user.name} (${userTransactions.length} transaksi, ${userAttendance.length} absensi) disalin ke clipboard!`);
+                showToast(`✅ Backup ${user.name}: ${userTransactions.length} transaksi, ${userAttendance.length} absensi`);
                 closeDrawer();
             } catch (err) {
                 const textarea = document.createElement('textarea');
@@ -933,7 +976,7 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToast(`✅ Data ${user.name} disalin ke clipboard!`);
+                showToast(`✅ Backup ${user.name} disalin ke clipboard!`);
                 closeDrawer();
             }
         }
@@ -973,34 +1016,41 @@
             filteredTransactionsUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
             filteredAttendanceUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
             
-            const omzet = filteredTransactionsUser.reduce((sum, t) => sum + (t.amount || 0), 0);
-            const bonus = calculateBonus(omzet);
-            
             const backupData = {
-                type: "user_backup",
-                backupDate: getWIBTime(),
-                period: period,
-                user: {
-                    username: user.username,
-                    name: user.name,
-                    pin: user.pin
-                },
-                statistics: {
-                    totalTransactions: filteredTransactionsUser.length,
-                    totalOmzet: omzet,
-                    bonusThisMonth: bonus,
-                    totalAttendance: filteredAttendanceUser.length,
-                    periodRange: period === 'today' ? 'Hari Ini' : (period === 'week' ? 'Minggu Ini' : (period === 'month' ? 'Bulan Ini' : 'Semua Waktu'))
-                },
-                transactions: filteredTransactionsUser,
-                attendance: filteredAttendanceUser
+                version: "7.0",
+                timestamp: getWIBTime(),
+                data: {
+                    users: [{
+                        username: user.username,
+                        name: user.name,
+                        pin: user.pin,
+                        createdAt: getWIBTime()
+                    }],
+                    transactions: filteredTransactionsUser.map(t => ({
+                        id: t.id,
+                        user: t.user,
+                        name: t.name,
+                        amount: t.amount,
+                        note: t.note,
+                        time: t.time
+                    })),
+                    attendance: filteredAttendanceUser.map(a => ({
+                        id: a.id,
+                        user: a.user,
+                        name: a.name,
+                        time: a.time,
+                        lat: a.loc?.lat || null,
+                        lng: a.loc?.lng || null
+                    }))
+                }
             };
             
             const jsonStr = JSON.stringify(backupData, null, 2);
             
             try {
                 await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ Backup ${user.name}: ${filteredTransactionsUser.length} transaksi, ${filteredAttendanceUser.length} absensi disalin ke clipboard!`);
+                const periodText = period === 'today' ? 'Hari Ini' : (period === 'week' ? 'Minggu Ini' : (period === 'month' ? 'Bulan Ini' : 'Semua Waktu'));
+                showToast(`✅ Backup ${user.name} (${periodText}): ${filteredTransactionsUser.length} transaksi, ${filteredAttendanceUser.length} absensi`);
                 closeDrawer();
             } catch (err) {
                 const textarea = document.createElement('textarea');
@@ -1012,6 +1062,339 @@
                 showToast(`✅ Backup ${user.name} disalin ke clipboard!`);
                 closeDrawer();
             }
+        }
+
+        // ==================== RESTORE FUNCTIONS (CEGAH DUPLIKASI) ====================
+        async function restoreToSheet() {
+            let clipboardText = '';
+            try {
+                clipboardText = await navigator.clipboard.readText();
+            } catch (err) {
+                clipboardText = prompt("Paste data backup JSON di sini:");
+            }
+            
+            if (!clipboardText) {
+                showToast("Tidak ada data di clipboard!", true);
+                return;
+            }
+            
+            try {
+                const backupData = JSON.parse(clipboardText);
+                
+                let users = [];
+                let transactions = [];
+                let attendance = [];
+                
+                if (backupData.data && backupData.data.users) {
+                    users = backupData.data.users || [];
+                    transactions = backupData.data.transactions || [];
+                    attendance = backupData.data.attendance || [];
+                } else {
+                    showToast("Format backup tidak dikenali!", true);
+                    return;
+                }
+                
+                if (users.length === 0 && transactions.length === 0 && attendance.length === 0) {
+                    showToast("Tidak ada data untuk direstore!", true);
+                    return;
+                }
+                
+                showLoading(true, "Mengecek data yang sudah ada di sheet...");
+                
+                // Ambil data existing dari sheet
+                const existingTrxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
+                const existingTrxRes = await fetch(existingTrxUrl);
+                const existingTrx = await existingTrxRes.json();
+                const existingIds = new Set((existingTrx.data || []).map(t => t.id));
+                
+                const existingAttUrl = `${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`;
+                const existingAttRes = await fetch(existingAttUrl);
+                const existingAtt = await existingAttRes.json();
+                const existingAttIds = new Set((existingAtt.data || []).map(a => a.id));
+                
+                // Filter data yang BELUM ADA
+                const newTransactions = transactions.filter(t => !existingIds.has(t.id));
+                const newAttendance = attendance.filter(a => !existingAttIds.has(a.id));
+                const newUsers = users.filter(u => {
+                    return !allUsers.some(existingUser => existingUser.username === u.username);
+                });
+                
+                if (newUsers.length === 0 && newTransactions.length === 0 && newAttendance.length === 0) {
+                    showLoading(false);
+                    showToast("⚠️ Semua data sudah ada di sheet (tidak ada yang baru)", true);
+                    return;
+                }
+                
+                const confirmRestore = confirm(`⚠️ RESTORE DATA KE SHEET\n\nData yang akan dikirim (hanya yang BELUM ADA):\n- ${newUsers.length} user baru\n- ${newTransactions.length} transaksi baru\n- ${newAttendance.length} absensi baru\n\nLANJUTKAN?`);
+                
+                if (!confirmRestore) {
+                    showLoading(false);
+                    return;
+                }
+                
+                showLoading(true, `Mengirim ${newTransactions.length + newAttendance.length + newUsers.length} data ke sheet...`);
+                
+                let successCount = 0;
+                let failCount = 0;
+                
+                // Kirim users baru
+                for (const user of newUsers) {
+                    try {
+                        await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'register',
+                                payload: {
+                                    username: user.username,
+                                    name: user.name,
+                                    pin: user.pin,
+                                    createdAt: user.createdAt || getWIBTime()
+                                }
+                            })
+                        });
+                        successCount++;
+                    } catch(e) { failCount++; }
+                }
+                
+                // Kirim transaksi baru
+                for (const trx of newTransactions) {
+                    try {
+                        await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'transaction',
+                                payload: {
+                                    user: trx.user,
+                                    name: trx.name,
+                                    amount: trx.amount,
+                                    note: trx.note,
+                                    time: trx.time
+                                }
+                            })
+                        });
+                        successCount++;
+                        await new Promise(r => setTimeout(r, 50));
+                    } catch(e) { failCount++; }
+                }
+                
+                // Kirim absensi baru
+                for (const att of newAttendance) {
+                    try {
+                        await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'attendance',
+                                payload: {
+                                    user: att.user,
+                                    name: att.name,
+                                    time: att.time,
+                                    loc: att.lat ? { lat: att.lat, lng: att.lng } : null
+                                }
+                            })
+                        });
+                        successCount++;
+                        await new Promise(r => setTimeout(r, 50));
+                    } catch(e) { failCount++; }
+                }
+                
+                showLoading(false);
+                showToast(`✅ Restore selesai! ${successCount} data baru ditambahkan, ${failCount} gagal`);
+                
+                await fetchAllData();
+                
+            } catch (error) {
+                showLoading(false);
+                console.error('Restore error:', error);
+                showToast("❌ Gagal restore: " + error.message, true);
+            }
+        }
+
+        // ==================== CRUD OPERATIONS (LANGSUNG KE SHEET) ====================
+        function showAddModal() {
+            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('edit-username').value = '';
+            document.getElementById('edit-name').value = '';
+            document.getElementById('edit-note').value = '';
+            document.getElementById('edit-amount').value = '';
+            document.getElementById('edit-time').value = getWIBForInput();
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            const usernameInput = document.getElementById('edit-username');
+            usernameInput.onchange = function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('edit-name').value = user.name;
+                } else {
+                    document.getElementById('edit-name').value = '';
+                }
+            };
+        }
+
+        function showEditModal(id) {
+            const transaction = allTransactions.find(t => t.id == id);
+            if (!transaction) return;
+            
+            document.getElementById('modal-title').innerText = 'Edit Transaksi';
+            document.getElementById('edit-id').value = transaction.id;
+            document.getElementById('edit-username').value = transaction.user || '';
+            document.getElementById('edit-name').value = transaction.name || '';
+            document.getElementById('edit-note').value = transaction.note || '';
+            document.getElementById('edit-amount').value = transaction.amount || '';
+            
+            let timeValue = transaction.time || '';
+            if (timeValue && timeValue.includes(' ')) {
+                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
+            }
+            document.getElementById('edit-time').value = timeValue || getWIBForInput();
+            
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            const usernameInput = document.getElementById('edit-username');
+            usernameInput.onchange = function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('edit-name').value = user.name;
+                }
+            };
+        }
+
+        async function saveTransaction() {
+            const id = document.getElementById('edit-id').value;
+            const username = document.getElementById('edit-username').value.trim();
+            const name = document.getElementById('edit-name').value.trim();
+            const note = document.getElementById('edit-note').value.trim();
+            const amount = parseInt(document.getElementById('edit-amount').value);
+            let time = document.getElementById('edit-time').value;
+            
+            if (!username) {
+                showToast("Username harus diisi!", true);
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showToast("Nominal harus diisi dan lebih dari 0!", true);
+                return;
+            }
+            if (!note) {
+                showToast("Keterangan harus diisi!", true);
+                return;
+            }
+            
+            if (time) {
+                time = time.replace('T', ' ') + ':00';
+            } else {
+                time = getWIBTime();
+            }
+            
+            showLoading(true, "Menyimpan transaksi...");
+            
+            try {
+                if (id) {
+                    // Delete old
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'delete_transaction',
+                            payload: { serverId: id.toString() }
+                        })
+                    });
+                    
+                    // Add new
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi berhasil diupdate!");
+                } else {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi berhasil ditambahkan!");
+                }
+                
+                closeModal();
+                await fetchAllData();
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast("❌ Gagal menyimpan transaksi", true);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showDeleteModal(id, note, amount) {
+            pendingDeleteId = id;
+            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        async function confirmDelete() {
+            if (!pendingDeleteId) return;
+            
+            showLoading(true, "Menghapus transaksi...");
+            
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'delete_transaction',
+                        payload: { serverId: pendingDeleteId.toString() }
+                    })
+                });
+                
+                showToast("✅ Transaksi berhasil dihapus!");
+                closeDeleteModal();
+                await fetchAllData();
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast("❌ Gagal menghapus transaksi", true);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('transaction-modal').classList.add('hidden');
         }
 
         // ==================== RENDER TABLE ====================
@@ -1107,187 +1490,6 @@
                 if (m === '>') return '&gt;';
                 return m;
             });
-        }
-
-        // ==================== CRUD OPERATIONS ====================
-        function showAddModal() {
-            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('edit-username').value = '';
-            document.getElementById('edit-name').value = '';
-            document.getElementById('edit-note').value = '';
-            document.getElementById('edit-amount').value = '';
-            document.getElementById('edit-time').value = getWIBForInput();
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            const usernameInput = document.getElementById('edit-username');
-            usernameInput.onchange = function() {
-                const user = allUsers.find(u => u.username === this.value);
-                if (user) {
-                    document.getElementById('edit-name').value = user.name;
-                } else {
-                    document.getElementById('edit-name').value = '';
-                }
-            };
-        }
-
-        function showEditModal(id) {
-            const transaction = allTransactions.find(t => t.id == id);
-            if (!transaction) return;
-            
-            document.getElementById('modal-title').innerText = 'Edit Transaksi';
-            document.getElementById('edit-id').value = transaction.id;
-            document.getElementById('edit-username').value = transaction.user || '';
-            document.getElementById('edit-name').value = transaction.name || '';
-            document.getElementById('edit-note').value = transaction.note || '';
-            document.getElementById('edit-amount').value = transaction.amount || '';
-            
-            let timeValue = transaction.time || '';
-            if (timeValue && timeValue.includes(' ')) {
-                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
-            }
-            document.getElementById('edit-time').value = timeValue || getWIBForInput();
-            
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            const usernameInput = document.getElementById('edit-username');
-            usernameInput.onchange = function() {
-                const user = allUsers.find(u => u.username === this.value);
-                if (user) {
-                    document.getElementById('edit-name').value = user.name;
-                }
-            };
-        }
-
-        async function saveTransaction() {
-            const id = document.getElementById('edit-id').value;
-            const username = document.getElementById('edit-username').value.trim();
-            const name = document.getElementById('edit-name').value.trim();
-            const note = document.getElementById('edit-note').value.trim();
-            const amount = parseInt(document.getElementById('edit-amount').value);
-            let time = document.getElementById('edit-time').value;
-            
-            if (!username) {
-                showToast("Username harus diisi!", true);
-                return;
-            }
-            if (!amount || amount <= 0) {
-                showToast("Nominal harus diisi dan lebih dari 0!", true);
-                return;
-            }
-            if (!note) {
-                showToast("Keterangan harus diisi!", true);
-                return;
-            }
-            
-            if (time) {
-                time = time.replace('T', ' ') + ':00';
-            } else {
-                time = getWIBTime();
-            }
-            
-            const saveBtn = document.getElementById('save-btn');
-            saveBtn.innerHTML = '<div class="loading-spinner"></div>';
-            saveBtn.disabled = true;
-            
-            try {
-                if (id) {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'delete_transaction',
-                            payload: { serverId: id.toString() }
-                        })
-                    });
-                    
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi berhasil diupdate!");
-                } else {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi berhasil ditambahkan!");
-                }
-                
-                closeModal();
-                await fetchAllData();
-                
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast("❌ Gagal menyimpan transaksi", true);
-            } finally {
-                saveBtn.innerHTML = 'Simpan';
-                saveBtn.disabled = false;
-            }
-        }
-
-        function showDeleteModal(id, note, amount) {
-            pendingDeleteId = id;
-            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            pendingDeleteId = null;
-            document.getElementById('delete-modal').classList.add('hidden');
-        }
-
-        async function confirmDelete() {
-            if (!pendingDeleteId) return;
-            
-            showToast("🔄 Menghapus...");
-            
-            try {
-                await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'delete_transaction',
-                        payload: { serverId: pendingDeleteId.toString() }
-                    })
-                });
-                
-                showToast("✅ Transaksi berhasil dihapus!");
-                closeDeleteModal();
-                await fetchAllData();
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                showToast("❌ Gagal menghapus transaksi", true);
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('transaction-modal').classList.add('hidden');
         }
 
         // ==================== INIT ====================
