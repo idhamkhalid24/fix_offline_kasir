@@ -60,7 +60,6 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
-        /* Drawer style */
         .drawer {
             position: fixed;
             bottom: 0;
@@ -91,6 +90,17 @@
             opacity: 1;
             visibility: visible;
         }
+        .attendance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .hadir { background: #dcfce7; color: #166534; }
+        .tidak-hadir { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -106,7 +116,7 @@
                     </div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi staff</p>
+                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi & absensi staff</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -116,6 +126,9 @@
                     <button onclick="openDrawer('bonus')" class="bg-yellow-500/80 hover:bg-yellow-500 active:bg-yellow-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
                         <i class="fas fa-gift mr-1"></i> Bonus
                     </button>
+                    <button onclick="openDrawer('attendance')" class="bg-green-500/80 hover:bg-green-500 active:bg-green-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
+                        <i class="fas fa-calendar-check mr-1"></i> Absensi
+                    </button>
                     <button onclick="openDrawer('backup')" class="bg-purple-500/80 hover:bg-purple-500 active:bg-purple-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
                         <i class="fas fa-clipboard mr-1"></i> Backup
                     </button>
@@ -124,7 +137,7 @@
         </div>
 
         <!-- Statistik Ringkas -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 sm:mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 sm:mb-6">
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-blue-500">
                 <p class="text-[10px] text-gray-400">Total Transaksi</p>
                 <p id="stat-total" class="text-xl sm:text-2xl font-bold text-gray-800">0</p>
@@ -140,6 +153,10 @@
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-orange-500">
                 <p class="text-[10px] text-gray-400">Bonus Bulan Ini</p>
                 <p id="stat-total-bonus" class="text-sm sm:text-lg font-bold text-orange-600 truncate">Rp 0</p>
+            </div>
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-teal-500">
+                <p class="text-[10px] text-gray-400">Total Absen Bulan Ini</p>
+                <p id="stat-total-absen" class="text-xl sm:text-2xl font-bold text-teal-600">0</p>
             </div>
         </div>
 
@@ -238,6 +255,27 @@
             </div>
             <div id="bonus-list" class="space-y-3">
                 <div class="text-center py-4 text-gray-400">Memuat data bonus...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer Absensi -->
+    <div id="drawer-attendance" class="drawer">
+        <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">
+                <i class="fas fa-calendar-check text-green-500 mr-2"></i> Rekap Absensi Staff
+            </h2>
+            <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <div class="mb-4 text-center">
+                <p class="text-xs text-gray-500">Periode: <span id="attendance-period" class="font-semibold">Bulan Ini</span></p>
+                <p class="text-xs text-gray-400 mt-1">Total hari kerja: <span id="total-work-days">0</span> hari</p>
+            </div>
+            <div id="attendance-list" class="space-y-3">
+                <div class="text-center py-4 text-gray-400">Memuat data absensi...</div>
             </div>
         </div>
     </div>
@@ -349,6 +387,7 @@
         let allTransactions = [];
         let filteredTransactions = [];
         let allUsers = [];
+        let allAttendance = [];
         let currentPage = 1;
         let rowsPerPage = 15;
         let currentFilter = 'month';
@@ -370,6 +409,16 @@
                 const [date, time] = dateTimeStr.split(' ');
                 const [year, month, day] = date.split('-');
                 return `${day}/${month} ${time.slice(0,5)}`;
+            }
+            return dateTimeStr;
+        }
+
+        function formatFullDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            if (dateTimeStr.includes(' ')) {
+                const [date, time] = dateTimeStr.split(' ');
+                const [year, month, day] = date.split('-');
+                return `${day}/${month}/${year} ${time.slice(0,5)}`;
             }
             return dateTimeStr;
         }
@@ -402,6 +451,18 @@
             const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             return `${bulan[wibNow.getMonth()]} ${wibNow.getFullYear()}`;
+        }
+
+        function getDaysUntilToday(year, month) {
+            const todayWIB = getTodayDate();
+            const todayDate = parseInt(todayWIB.split('-')[2]);
+            const currentYear = parseInt(todayWIB.split('-')[0]);
+            const currentMonth = parseInt(todayWIB.split('-')[1]);
+            
+            if (year === currentYear && month === currentMonth) {
+                return todayDate;
+            }
+            return new Date(year, month, 0).getDate();
         }
 
         function getWIBForInput() {
@@ -440,6 +501,8 @@
             
             if (type === 'bonus') {
                 renderBonusList();
+            } else if (type === 'attendance') {
+                renderAttendanceList();
             } else if (type === 'backup') {
                 updateUserSelectForBackup();
             }
@@ -451,10 +514,12 @@
         function closeDrawer() {
             const overlay = document.getElementById('drawer-overlay');
             const bonusDrawer = document.getElementById('drawer-bonus');
+            const attendanceDrawer = document.getElementById('drawer-attendance');
             const backupDrawer = document.getElementById('drawer-backup');
             
             overlay.classList.remove('open');
             bonusDrawer.classList.remove('open');
+            attendanceDrawer.classList.remove('open');
             backupDrawer.classList.remove('open');
         }
 
@@ -463,6 +528,7 @@
             showToast("🔄 Mengambil data...");
             
             try {
+                // Fetch transactions
                 const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
                 const trxResponse = await fetch(trxUrl);
                 const trxResult = await trxResponse.json();
@@ -473,6 +539,18 @@
                     allTransactions = [];
                 }
                 
+                // Fetch attendance
+                const attUrl = `${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`;
+                const attResponse = await fetch(attUrl);
+                const attResult = await attResponse.json();
+                
+                if (attResult.success && attResult.data) {
+                    allAttendance = attResult.data;
+                } else {
+                    allAttendance = [];
+                }
+                
+                // Fetch users
                 const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
                 const usersResponse = await fetch(usersUrl);
                 const usersResult = await usersResponse.json();
@@ -482,15 +560,17 @@
                     updateUserDatalist();
                 }
                 
-                console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allUsers.length} users`);
+                console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allAttendance.length} attendance, ${allUsers.length} users`);
                 applyFilters();
                 updateTotalBonusStat();
-                showToast(`✅ ${allTransactions.length} transaksi dimuat`);
+                updateTotalAttendanceStat();
+                showToast(`✅ ${allTransactions.length} transaksi, ${allAttendance.length} absensi dimuat`);
                 
             } catch (error) {
                 console.error('Error fetching:', error);
                 showToast("❌ Gagal mengambil data", true);
                 allTransactions = [];
+                allAttendance = [];
                 renderTable();
             }
         }
@@ -691,6 +771,123 @@
             }).join('');
         }
 
+        // ==================== ABSENSI ====================
+        function getUserAttendanceThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allAttendance
+                .filter(a => a.user === username)
+                .filter(a => {
+                    const attDate = (a.time || '').slice(0, 10);
+                    return attDate >= startOfMonth && attDate <= today;
+                });
+        }
+
+        function getUserAttendanceCountThisMonth(username) {
+            return getUserAttendanceThisMonth(username).length;
+        }
+
+        function getUserAttendanceDatesThisMonth(username) {
+            const attendance = getUserAttendanceThisMonth(username);
+            return attendance.map(a => ({
+                date: (a.time || '').slice(0, 10),
+                time: a.time
+            }));
+        }
+
+        function updateTotalAttendanceStat() {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            const currentYear = parseInt(startOfMonth.slice(0, 4));
+            const currentMonth = parseInt(startOfMonth.slice(5, 7));
+            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
+            
+            const uniqueAttendanceDates = new Set();
+            for (const att of allAttendance) {
+                const attDate = (att.time || '').slice(0, 10);
+                if (attDate >= startOfMonth && attDate <= today) {
+                    uniqueAttendanceDates.add(attDate);
+                }
+            }
+            
+            document.getElementById('stat-total-absen').innerText = uniqueAttendanceDates.size;
+        }
+
+        function renderAttendanceList() {
+            const container = document.getElementById('attendance-list');
+            if (!container) return;
+            
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            const currentYear = parseInt(startOfMonth.slice(0, 4));
+            const currentMonth = parseInt(startOfMonth.slice(5, 7));
+            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
+            
+            document.getElementById('attendance-period').innerText = getCurrentMonthYear();
+            document.getElementById('total-work-days').innerText = totalWorkDays;
+            
+            if (allUsers.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-400">Tidak ada data user</div>';
+                return;
+            }
+            
+            // Hitung total hadir per user
+            const attendanceData = allUsers.map(user => {
+                const attendanceRecords = getUserAttendanceThisMonth(user.username);
+                const hadirCount = attendanceRecords.length;
+                const persentase = totalWorkDays > 0 ? Math.round((hadirCount / totalWorkDays) * 100) : 0;
+                const attendanceDates = attendanceRecords.map(a => ({
+                    date: (a.time || '').slice(0, 10),
+                    time: a.time
+                }));
+                
+                return {
+                    ...user,
+                    hadirCount,
+                    persentase,
+                    attendanceDates
+                };
+            });
+            
+            // Urutkan berdasarkan persentase kehadiran (tertinggi ke terendah)
+            attendanceData.sort((a, b) => b.persentase - a.persentase);
+            
+            container.innerHTML = attendanceData.map(user => {
+                const statusColor = user.persentase >= 80 ? 'text-green-600' : (user.persentase >= 50 ? 'text-yellow-600' : 'text-red-600');
+                const statusBg = user.persentase >= 80 ? 'bg-green-50' : (user.persentase >= 50 ? 'bg-yellow-50' : 'bg-red-50');
+                
+                return `
+                    <div class="bg-white rounded-xl p-4 shadow-sm border ${statusBg}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
+                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold ${statusColor}">${user.persentase}%</p>
+                                <p class="text-[9px] text-gray-400">${user.hadirCount}/${totalWorkDays} hari</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: ${user.persentase}%"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${user.attendanceDates.length > 0 ? 
+                                user.attendanceDates.map(att => `
+                                    <span class="attendance-badge hadir">
+                                        <i class="fas fa-check-circle text-[8px]"></i>
+                                        ${att.date.slice(5)}
+                                    </span>
+                                `).join('') : 
+                                '<span class="attendance-badge tidak-hadir"><i class="fas fa-times-circle text-[8px]"></i> Belum pernah absen</span>'
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         // ==================== BACKUP FUNCTIONS ====================
         async function backupSingleUser(username) {
             const user = allUsers.find(u => u.username === username);
@@ -700,6 +897,7 @@
             }
             
             const userTransactions = allTransactions.filter(t => t.user === username);
+            const userAttendance = allAttendance.filter(a => a.user === username);
             const omzetThisMonth = getUserOmzetThisMonth(username);
             const bonus = calculateBonus(omzetThisMonth);
             
@@ -715,16 +913,18 @@
                     totalTransactions: userTransactions.length,
                     totalOmzet: omzetThisMonth,
                     bonusThisMonth: bonus,
+                    totalAttendance: userAttendance.length,
                     period: getCurrentMonthYear()
                 },
-                transactions: userTransactions.sort((a, b) => (b.time || '').localeCompare(a.time || ''))
+                transactions: userTransactions.sort((a, b) => (b.time || '').localeCompare(a.time || '')),
+                attendance: userAttendance.sort((a, b) => (b.time || '').localeCompare(a.time || ''))
             };
             
             const jsonStr = JSON.stringify(backupData, null, 2);
             
             try {
                 await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ Data ${user.name} (${userTransactions.length} transaksi) disalin ke clipboard!`);
+                showToast(`✅ Data ${user.name} (${userTransactions.length} transaksi, ${userAttendance.length} absensi) disalin ke clipboard!`);
                 closeDrawer();
             } catch (err) {
                 const textarea = document.createElement('textarea');
@@ -754,19 +954,24 @@
             }
             
             let filteredTransactionsUser = [...allTransactions.filter(t => t.user === username)];
+            let filteredAttendanceUser = [...allAttendance.filter(a => a.user === username)];
             const today = getTodayDate();
             const startOfWeek = getStartOfWeek();
             const startOfMonth = getStartOfMonth();
             
             if (period === 'today') {
                 filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) === today);
+                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) === today);
             } else if (period === 'week') {
                 filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
+                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) >= startOfWeek);
             } else if (period === 'month') {
                 filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
+                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) >= startOfMonth);
             }
             
             filteredTransactionsUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+            filteredAttendanceUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
             
             const omzet = filteredTransactionsUser.reduce((sum, t) => sum + (t.amount || 0), 0);
             const bonus = calculateBonus(omzet);
@@ -784,16 +989,18 @@
                     totalTransactions: filteredTransactionsUser.length,
                     totalOmzet: omzet,
                     bonusThisMonth: bonus,
+                    totalAttendance: filteredAttendanceUser.length,
                     periodRange: period === 'today' ? 'Hari Ini' : (period === 'week' ? 'Minggu Ini' : (period === 'month' ? 'Bulan Ini' : 'Semua Waktu'))
                 },
-                transactions: filteredTransactionsUser
+                transactions: filteredTransactionsUser,
+                attendance: filteredAttendanceUser
             };
             
             const jsonStr = JSON.stringify(backupData, null, 2);
             
             try {
                 await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ Backup ${user.name}: ${filteredTransactionsUser.length} transaksi disalin ke clipboard!`);
+                showToast(`✅ Backup ${user.name}: ${filteredTransactionsUser.length} transaksi, ${filteredAttendanceUser.length} absensi disalin ke clipboard!`);
                 closeDrawer();
             } catch (err) {
                 const textarea = document.createElement('textarea');
