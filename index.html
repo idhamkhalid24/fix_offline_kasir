@@ -45,23 +45,19 @@
         .table-row:active {
             background-color: #f3f4f6;
         }
-        /* Sticky header untuk tabel di mobile */
         .sticky-header th {
             position: sticky;
             top: 0;
             background: white;
             z-index: 10;
         }
-        /* Scroll horizontal halus */
         .overflow-x-auto {
             -webkit-overflow-scrolling: touch;
         }
-        /* Better touch targets */
         button, .clickable {
             cursor: pointer;
             touch-action: manipulation;
         }
-        /* Hide spinner on number input */
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -70,13 +66,16 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+        .bonus-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
     <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         
-        <!-- Header dengan Gradient -->
+        <!-- Header -->
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 sm:mb-6 text-white">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex items-center gap-3">
@@ -85,28 +84,17 @@
                     </div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola semua data transaksi staff</p>
+                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi & bonus staff</p>
                     </div>
                 </div>
-                <div class="flex gap-2 flex-wrap w-full sm:w-auto">
-                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
-                        <i class="fas fa-sync-alt mr-1"></i> Refresh
-                    </button>
-                    <button onclick="showExportOptions()" class="bg-green-600 hover:bg-green-700 active:bg-green-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-download mr-1"></i> Export
-                    </button>
-                    <button onclick="showImportOptions()" class="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-upload mr-1"></i> Import
-                    </button>
-                    <button onclick="showAddModal()" class="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-plus mr-1"></i> Tambah
-                    </button>
-                </div>
+                <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
+                    <i class="fas fa-sync-alt mr-1"></i> Refresh
+                </button>
             </div>
         </div>
 
-        <!-- Statistik - Grid responsive -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 sm:mb-6">
+        <!-- Statistik Umum -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 sm:mb-6">
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-blue-500 card-hover">
                 <p class="text-[10px] text-gray-400">Total Transaksi</p>
                 <p id="stat-total" class="text-xl sm:text-2xl font-bold text-gray-800">0</p>
@@ -120,25 +108,21 @@
                 <p id="stat-users" class="text-xl sm:text-2xl font-bold text-purple-600">0</p>
             </div>
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-orange-500 card-hover">
-                <p class="text-[10px] text-gray-400">Rata-rata</p>
-                <p id="stat-avg" class="text-xs sm:text-sm font-bold text-orange-600 truncate">Rp 0</p>
-            </div>
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-red-500 card-hover">
-                <p class="text-[10px] text-gray-400">Tertinggi</p>
-                <p id="stat-max" class="text-xs sm:text-sm font-bold text-red-600 truncate">Rp 0</p>
+                <p class="text-[10px] text-gray-400">Total Bonus Bulan Ini</p>
+                <p id="stat-total-bonus" class="text-sm sm:text-lg font-bold text-orange-600 truncate">Rp 0</p>
             </div>
         </div>
 
-        <!-- Filter Bar - Mobile Friendly -->
+        <!-- Filter Bar -->
         <div class="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4">
             <div class="space-y-3">
                 <div class="flex gap-2">
                     <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white btn-touch">
-                        <option value="all">🌐 Semua Waktu</option>
                         <option value="today">📅 Hari Ini</option>
                         <option value="yesterday">📆 Kemarin</option>
                         <option value="week">📊 Minggu Ini</option>
-                        <option value="month">📈 Bulan Ini</option>
+                        <option value="month" selected>📈 Bulan Ini</option>
+                        <option value="all">🌐 Semua Waktu</option>
                         <option value="custom">🎯 Custom Range</option>
                     </select>
                 </div>
@@ -166,8 +150,28 @@
             </div>
         </div>
 
-        <!-- Tabel Data - Mobile friendly dengan horizontal scroll -->
+        <!-- Ringkasan Bonus per User (Card Grid) -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-base font-bold text-gray-700">
+                    <i class="fas fa-gift text-yellow-500 mr-2"></i> Bonus Staff - Periode Berjalan
+                </h2>
+                <button onclick="backupAllUsersBonus()" class="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs btn-touch">
+                    <i class="fas fa-clipboard-list"></i> Backup Semua
+                </button>
+            </div>
+            <div id="bonus-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="text-center py-4 text-gray-400">Memuat data bonus...</div>
+            </div>
+        </div>
+
+        <!-- Tabel Data Transaksi -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b bg-gray-50">
+                <h2 class="text-sm font-bold text-gray-700">
+                    <i class="fas fa-list-ul text-blue-500 mr-2"></i> Daftar Transaksi
+                </h2>
+            </div>
             <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
                 <table class="w-full text-sm min-w-[600px]">
                     <thead class="bg-gray-50 border-b sticky-header">
@@ -192,7 +196,7 @@
                 </table>
             </div>
             
-            <!-- Pagination Mobile Friendly -->
+            <!-- Pagination -->
             <div class="px-3 py-3 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
                 <span id="pagination-info">Menampilkan 0 dari 0 data</span>
                 <div class="flex gap-2 items-center">
@@ -239,7 +243,7 @@
             </div>
             <div class="flex gap-3 mt-6">
                 <button onclick="closeModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
-                <button onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch">Simpan</button>
+                <button id="save-btn" onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch">Simpan</button>
             </div>
         </div>
     </div>
@@ -258,65 +262,50 @@
         </div>
     </div>
 
-    <!-- Modal Export Options -->
-    <div id="export-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6">
-            <div class="text-center mb-4">
-                <i class="fas fa-download text-green-500 text-4xl mb-2"></i>
-                <h3 class="text-lg font-bold text-gray-800">Export Data</h3>
-                <p class="text-xs text-gray-500">Pilih metode export</p>
-            </div>
-            <div class="space-y-3">
-                <button onclick="exportToCSV()" class="w-full py-3 bg-green-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
-                    <i class="fas fa-file-excel"></i> Export ke CSV
-                </button>
-                <button onclick="exportToJSON()" class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
-                    <i class="fas fa-code"></i> Export ke JSON
-                </button>
-                <button onclick="exportToClipboard()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
-                    <i class="fas fa-clipboard"></i> Copy ke Clipboard (JSON)
-                </button>
-            </div>
-            <button onclick="closeExportModal()" class="w-full mt-4 py-2 bg-gray-200 rounded-xl font-medium btn-touch">Tutup</button>
-        </div>
-    </div>
-
-    <!-- Modal Import Options -->
-    <div id="import-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <!-- Modal Backup User -->
+    <div id="backup-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
         <div class="bg-white rounded-2xl w-full max-w-md p-6">
             <div class="text-center mb-4">
-                <i class="fas fa-upload text-orange-500 text-4xl mb-2"></i>
-                <h3 class="text-lg font-bold text-gray-800">Import Data</h3>
-                <p class="text-xs text-gray-500">Pilih metode import</p>
+                <i class="fas fa-database text-blue-500 text-4xl mb-2"></i>
+                <h3 class="text-lg font-bold text-gray-800">Backup Data User</h3>
+                <p class="text-xs text-gray-500">Pilih user untuk di-backup ke clipboard</p>
             </div>
-            <div class="space-y-4">
-                <div class="border rounded-xl p-3">
-                    <label class="text-sm font-medium text-gray-700 block mb-2">📁 Upload File JSON</label>
-                    <input type="file" id="import-file" accept=".json" class="w-full text-sm">
-                </div>
-                <div class="border rounded-xl p-3">
-                    <label class="text-sm font-medium text-gray-700 block mb-2">📋 Paste dari Clipboard</label>
-                    <textarea id="import-clipboard" rows="4" placeholder="Tempel JSON data di sini..." class="w-full p-3 border rounded-xl text-xs font-mono"></textarea>
-                    <button onclick="importFromClipboard()" class="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg text-sm btn-touch">
-                        <i class="fas fa-clipboard"></i> Import dari Clipboard
-                    </button>
-                </div>
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700">Pilih User</label>
+                <select id="backup-user-select" class="w-full p-3 border rounded-xl mt-1 text-base">
+                    <option value="">-- Pilih User --</option>
+                </select>
             </div>
-            <div class="flex gap-3 mt-4">
-                <button onclick="closeImportModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium btn-touch">Tutup</button>
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700">Periode Data</label>
+                <select id="backup-period" class="w-full p-3 border rounded-xl mt-1 text-base">
+                    <option value="all">📅 Semua Waktu</option>
+                    <option value="month">📈 Bulan Ini</option>
+                    <option value="week">📊 Minggu Ini</option>
+                    <option value="today">📅 Hari Ini</option>
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeBackupModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
+                <button onclick="backupSelectedUser()" class="flex-1 py-2 bg-blue-600 text-white rounded-xl font-medium btn-touch">
+                    <i class="fas fa-clipboard"></i> Backup ke Clipboard
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="white-space: nowrap; max-width: 90vw; white-space: normal; text-align: center;">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="max-width: 90vw; text-align: center;">
         Notifikasi
     </div>
 
     <script>
         // ==================== KONFIGURASI ====================
-        // ⚠️ GANTI DENGAN URL GAS WEB APP ANDA!
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwruPxgynIUQV_kpe57S6LwcEFWdcJaDbiY8SEg7z9XuZ5GVrYFZL8PatkDj1SMZ05x/exec";
+        
+        // Konfigurasi Bonus: Rp 150.000 per Rp 10.000.000 omzet
+        const BONUS_PER_10JT = 150000;
+        const OMSET_PER_BONUS = 10000000;
         
         // State
         let allTransactions = [];
@@ -324,7 +313,7 @@
         let allUsers = [];
         let currentPage = 1;
         let rowsPerPage = 15;
-        let currentFilter = 'all';
+        let currentFilter = 'month';
         let customStartDate = null;
         let customEndDate = null;
         let searchUsername = '';
@@ -369,10 +358,28 @@
             return `${wibNow.getFullYear()}-${String(wibNow.getMonth() + 1).padStart(2, '0')}-01`;
         }
 
+        function getCurrentMonthYear() {
+            const now = new Date();
+            const wibNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            return `${bulan[wibNow.getMonth()]} ${wibNow.getFullYear()}`;
+        }
+
         function getWIBForInput() {
             const now = new Date();
             const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
             return wibTime.toISOString().slice(0, 16);
+        }
+
+        function getWIBTime() {
+            const now = new Date();
+            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            return wibTime.toISOString().replace('T', ' ').slice(0, 19);
+        }
+
+        function calculateBonus(omzet) {
+            return Math.floor(omzet / OMSET_PER_BONUS) * BONUS_PER_10JT;
         }
 
         function showToast(msg, isError = false) {
@@ -386,19 +393,6 @@
                 toast.classList.remove('scale-100');
                 toast.classList.add('scale-0');
             }, 3000);
-        }
-
-        function setLoading(loading, btnId = null) {
-            if (btnId) {
-                const btn = document.getElementById(btnId);
-                if (btn && loading) {
-                    btn.innerHTML = '<div class="loading-spinner"></div>';
-                    btn.disabled = true;
-                } else if (btn && !loading) {
-                    btn.innerHTML = btn.getAttribute('data-original') || 'Simpan';
-                    btn.disabled = false;
-                }
-            }
         }
 
         // ==================== FETCH DATA ====================
@@ -423,10 +417,12 @@
                 if (usersResult.success && usersResult.data) {
                     allUsers = usersResult.data;
                     updateUserDatalist();
+                    updateUserSelectForBackup();
                 }
                 
                 console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allUsers.length} users`);
                 applyFilters();
+                renderBonusCards();
                 showToast(`✅ ${allTransactions.length} transaksi dimuat`);
                 
             } catch (error) {
@@ -443,6 +439,14 @@
                 datalist.innerHTML = allUsers.map(u => 
                     `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`
                 ).join('');
+            }
+        }
+
+        function updateUserSelectForBackup() {
+            const select = document.getElementById('backup-user-select');
+            if (select) {
+                select.innerHTML = '<option value="">-- Pilih User --</option>' + 
+                    allUsers.map(u => `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)} (${escapeHtml(u.username)})</option>`).join('');
             }
         }
 
@@ -463,6 +467,7 @@
             }
             
             applyFilters();
+            renderBonusCards();
         }
 
         function applyCustomRange() {
@@ -475,6 +480,7 @@
                 currentFilter = 'custom';
                 document.getElementById('filter-period').value = 'custom';
                 applyFilters();
+                renderBonusCards();
             } else {
                 showToast("Pilih tanggal awal dan akhir!", true);
             }
@@ -485,6 +491,13 @@
             searchNote = document.getElementById('search-note').value.toLowerCase();
             currentPage = 1;
             applyFilters();
+        }
+
+        function getDateFilter(startDate, endDate) {
+            return (t) => {
+                const tDate = (t.time || '').slice(0, 10);
+                return tDate >= startDate && tDate <= endDate;
+            };
         }
 
         function applyFilters() {
@@ -509,10 +522,7 @@
                 filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
             }
             else if (currentFilter === 'custom' && customStartDate && customEndDate) {
-                filtered = filtered.filter(t => {
-                    const tDate = (t.time || '').slice(0, 10);
-                    return tDate >= customStartDate && tDate <= customEndDate;
-                });
+                filtered = filtered.filter(getDateFilter(customStartDate, customEndDate));
             }
             
             if (searchUsername) {
@@ -535,14 +545,249 @@
             const total = filteredTransactions.length;
             const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
             const uniqueUsers = new Set(filteredTransactions.map(t => t.user));
-            const avgOmzet = total > 0 ? Math.round(totalOmzet / total) : 0;
-            const maxOmzet = filteredTransactions.length > 0 ? Math.max(...filteredTransactions.map(t => t.amount || 0)) : 0;
             
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
             document.getElementById('stat-users').innerText = uniqueUsers.size;
-            document.getElementById('stat-avg').innerHTML = `Rp ${formatRupiah(avgOmzet)}`;
-            document.getElementById('stat-max').innerHTML = `Rp ${formatRupiah(maxOmzet)}`;
+        }
+
+        // ==================== BONUS PER USER ====================
+        function getUserOmzetThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allTransactions
+                .filter(t => t.user === username)
+                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
+                .filter(t => (t.time || '').slice(0, 10) <= today)
+                .reduce((sum, t) => sum + (t.amount || 0), 0);
+        }
+
+        function getUserTransactionCountThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allTransactions
+                .filter(t => t.user === username)
+                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
+                .filter(t => (t.time || '').slice(0, 10) <= today)
+                .length;
+        }
+
+        function renderBonusCards() {
+            const container = document.getElementById('bonus-cards-container');
+            if (!container) return;
+            
+            if (allUsers.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-400 col-span-full">Tidak ada data user</div>';
+                return;
+            }
+            
+            let totalBonusAll = 0;
+            const cards = allUsers.map(user => {
+                const omzet = getUserOmzetThisMonth(user.username);
+                const bonus = calculateBonus(omzet);
+                const trxCount = getUserTransactionCountThisMonth(user.username);
+                totalBonusAll += bonus;
+                
+                return `
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-100 hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
+                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
+                            </div>
+                            <button onclick="backupSingleUser('${escapeHtml(user.username)}')" class="text-purple-500 hover:text-purple-700 p-2 rounded-lg active:bg-purple-50 btn-touch" title="Backup data user">
+                                <i class="fas fa-clipboard"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-gray-100">
+                            <div>
+                                <p class="text-[9px] text-gray-400">Omzet Bulan Ini</p>
+                                <p class="text-sm font-bold text-green-600">Rp ${formatRupiah(omzet)}</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-gray-400">Jumlah Transaksi</p>
+                                <p class="text-sm font-bold text-blue-600">${trxCount} x</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2 text-center">
+                            <p class="text-[9px] text-yellow-600">🏆 Bonus Bulan ${getCurrentMonthYear()}</p>
+                            <p class="text-base font-black text-orange-600">Rp ${formatRupiah(bonus)}</p>
+                            <p class="text-[8px] text-gray-400">Rp 150.000 per Rp 10.000.000 omzet</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = cards;
+            document.getElementById('stat-total-bonus').innerHTML = `Rp ${formatRupiah(totalBonusAll)}`;
+        }
+
+        // ==================== BACKUP FUNCTIONS ====================
+        function showBackupModal() {
+            updateUserSelectForBackup();
+            document.getElementById('backup-modal').classList.remove('hidden');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backup-modal').classList.add('hidden');
+        }
+
+        async function backupSingleUser(username) {
+            const user = allUsers.find(u => u.username === username);
+            if (!user) {
+                showToast("User tidak ditemukan!", true);
+                return;
+            }
+            
+            const userTransactions = allTransactions.filter(t => t.user === username);
+            const omzetThisMonth = getUserOmzetThisMonth(username);
+            const bonus = calculateBonus(omzetThisMonth);
+            
+            const backupData = {
+                type: "user_backup",
+                backupDate: getWIBTime(),
+                user: {
+                    username: user.username,
+                    name: user.name,
+                    pin: user.pin
+                },
+                statistics: {
+                    totalTransactions: userTransactions.length,
+                    totalOmzet: omzetThisMonth,
+                    bonusThisMonth: bonus,
+                    period: getCurrentMonthYear()
+                },
+                transactions: userTransactions.sort((a, b) => (b.time || '').localeCompare(a.time || ''))
+            };
+            
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            
+            try {
+                await navigator.clipboard.writeText(jsonStr);
+                showToast(`✅ Data user ${user.name} (${userTransactions.length} transaksi) disalin ke clipboard!`);
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonStr;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`✅ Data user ${user.name} disalin ke clipboard!`);
+            }
+        }
+
+        async function backupSelectedUser() {
+            const username = document.getElementById('backup-user-select').value;
+            const period = document.getElementById('backup-period').value;
+            
+            if (!username) {
+                showToast("Pilih user terlebih dahulu!", true);
+                return;
+            }
+            
+            const user = allUsers.find(u => u.username === username);
+            if (!user) {
+                showToast("User tidak ditemukan!", true);
+                return;
+            }
+            
+            let filteredTransactions = [...allTransactions.filter(t => t.user === username)];
+            const today = getTodayDate();
+            const startOfWeek = getStartOfWeek();
+            const startOfMonth = getStartOfMonth();
+            
+            if (period === 'today') {
+                filteredTransactions = filteredTransactions.filter(t => (t.time || '').slice(0, 10) === today);
+            } else if (period === 'week') {
+                filteredTransactions = filteredTransactions.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
+            } else if (period === 'month') {
+                filteredTransactions = filteredTransactions.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
+            }
+            
+            filteredTransactions.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+            
+            const omzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+            const bonus = calculateBonus(omzet);
+            
+            const backupData = {
+                type: "user_backup",
+                backupDate: getWIBTime(),
+                period: period,
+                user: {
+                    username: user.username,
+                    name: user.name,
+                    pin: user.pin
+                },
+                statistics: {
+                    totalTransactions: filteredTransactions.length,
+                    totalOmzet: omzet,
+                    bonusThisMonth: bonus,
+                    periodRange: period === 'today' ? 'Hari Ini' : (period === 'week' ? 'Minggu Ini' : (period === 'month' ? 'Bulan Ini' : 'Semua Waktu'))
+                },
+                transactions: filteredTransactions
+            };
+            
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            
+            try {
+                await navigator.clipboard.writeText(jsonStr);
+                showToast(`✅ Backup ${user.name}: ${filteredTransactions.length} transaksi (${backupData.statistics.periodRange}) disalin ke clipboard!`);
+                closeBackupModal();
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonStr;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`✅ Backup ${user.name} disalin ke clipboard!`);
+                closeBackupModal();
+            }
+        }
+
+        async function backupAllUsersBonus() {
+            const allBonusData = [];
+            let totalBonusAll = 0;
+            
+            for (const user of allUsers) {
+                const omzet = getUserOmzetThisMonth(user.username);
+                const bonus = calculateBonus(omzet);
+                const trxCount = getUserTransactionCountThisMonth(user.username);
+                totalBonusAll += bonus;
+                
+                allBonusData.push({
+                    username: user.username,
+                    name: user.name,
+                    omzetThisMonth: omzet,
+                    transactionCount: trxCount,
+                    bonusThisMonth: bonus
+                });
+            }
+            
+            const backupData = {
+                type: "all_bonus_report",
+                backupDate: getWIBTime(),
+                period: getCurrentMonthYear(),
+                totalBonus: totalBonusAll,
+                users: allBonusData
+            };
+            
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            
+            try {
+                await navigator.clipboard.writeText(jsonStr);
+                showToast(`✅ Backup semua bonus (${allUsers.length} user) disalin ke clipboard!`);
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonStr;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`✅ Backup semua bonus disalin ke clipboard!`);
+            }
         }
 
         // ==================== RENDER TABLE ====================
@@ -714,12 +959,12 @@
             if (time) {
                 time = time.replace('T', ' ') + ':00';
             } else {
-                const now = new Date();
-                const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-                time = wibTime.toISOString().replace('T', ' ').slice(0, 19);
+                time = getWIBTime();
             }
             
-            showToast("🔄 Menyimpan...");
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerHTML = '<div class="loading-spinner"></div>';
+            saveBtn.disabled = true;
             
             try {
                 if (id) {
@@ -774,6 +1019,9 @@
             } catch (error) {
                 console.error('Save error:', error);
                 showToast("❌ Gagal menyimpan transaksi", true);
+            } finally {
+                saveBtn.innerHTML = 'Simpan';
+                saveBtn.disabled = false;
             }
         }
 
@@ -818,229 +1066,6 @@
             document.getElementById('transaction-modal').classList.add('hidden');
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
-        function showExportOptions() {
-            document.getElementById('export-modal').classList.remove('hidden');
-        }
-
-        function closeExportModal() {
-            document.getElementById('export-modal').classList.add('hidden');
-        }
-
-        function exportToCSV() {
-            if (filteredTransactions.length === 0) {
-                showToast("Tidak ada data untuk diexport", true);
-                return;
-            }
-            
-            const headers = ['ID', 'Tanggal & Waktu', 'User', 'Nama Staff', 'Keterangan', 'Nominal'];
-            const rows = filteredTransactions.map(t => [
-                t.id || '',
-                t.time || '',
-                t.user || '',
-                t.name || '',
-                t.note || '',
-                t.amount || 0
-            ]);
-            
-            const csvContent = [headers, ...rows]
-                .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-                .join('\n');
-            
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.setAttribute('download', `transactions_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            showToast(`✅ Export CSV: ${filteredTransactions.length} transaksi`);
-            closeExportModal();
-        }
-
-        function exportToJSON() {
-            if (filteredTransactions.length === 0) {
-                showToast("Tidak ada data untuk diexport", true);
-                return;
-            }
-            
-            const exportData = {
-                version: "1.0",
-                exportDate: new Date().toISOString(),
-                filter: currentFilter,
-                totalRecords: filteredTransactions.length,
-                data: filteredTransactions
-            };
-            
-            const jsonStr = JSON.stringify(exportData, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.setAttribute('download', `transactions_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            showToast(`✅ Export JSON: ${filteredTransactions.length} transaksi`);
-            closeExportModal();
-        }
-
-        async function exportToClipboard() {
-            if (filteredTransactions.length === 0) {
-                showToast("Tidak ada data untuk diexport", true);
-                return;
-            }
-            
-            const exportData = {
-                version: "1.0",
-                exportDate: new Date().toISOString(),
-                filter: currentFilter,
-                totalRecords: filteredTransactions.length,
-                data: filteredTransactions
-            };
-            
-            const jsonStr = JSON.stringify(exportData, null, 2);
-            
-            try {
-                await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ ${filteredTransactions.length} transaksi disalin ke clipboard!`);
-                closeExportModal();
-            } catch (err) {
-                // Fallback for older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = jsonStr;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast(`✅ ${filteredTransactions.length} transaksi disalin ke clipboard!`);
-                closeExportModal();
-            }
-        }
-
-        // ==================== IMPORT FUNCTIONS ====================
-        function showImportOptions() {
-            document.getElementById('import-modal').classList.remove('hidden');
-            document.getElementById('import-file').value = '';
-            document.getElementById('import-clipboard').value = '';
-        }
-
-        function closeImportModal() {
-            document.getElementById('import-modal').classList.add('hidden');
-        }
-
-        async function processImportData(importedData) {
-            let newTransactions = [];
-            
-            if (importedData.data && Array.isArray(importedData.data)) {
-                newTransactions = importedData.data;
-            } else if (Array.isArray(importedData)) {
-                newTransactions = importedData;
-            } else if (importedData.transactions && Array.isArray(importedData.transactions)) {
-                newTransactions = importedData.transactions;
-            } else {
-                throw new Error("Format file tidak dikenali");
-            }
-            
-            if (newTransactions.length === 0) {
-                throw new Error("Tidak ada data transaksi dalam file");
-            }
-            
-            const existingIds = new Set(allTransactions.map(t => t.id));
-            let addedCount = 0;
-            let duplicateCount = 0;
-            
-            for (const newTrx of newTransactions) {
-                if (!existingIds.has(newTrx.id)) {
-                    allTransactions.push(newTrx);
-                    addedCount++;
-                } else {
-                    duplicateCount++;
-                }
-            }
-            
-            showToast(`✅ Import selesai! Menambah ${addedCount} transaksi baru (${duplicateCount} duplikat diabaikan)`);
-            closeImportModal();
-            applyFilters();
-            
-            // Optional: Sync to server? Uncomment if needed
-            // for (const newTrx of newTransactions) {
-            //     if (!existingIds.has(newTrx.id)) {
-            //         await fetch(GAS_WEB_APP_URL, {
-            //             method: 'POST',
-            //             mode: 'no-cors',
-            //             headers: { 'Content-Type': 'application/json' },
-            //             body: JSON.stringify({
-            //                 type: 'transaction',
-            //                 payload: newTrx
-            //             })
-            //         });
-            //     }
-            // }
-        }
-
-        async function importFromFile() {
-            const fileInput = document.getElementById('import-file');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showToast("Pilih file JSON terlebih dahulu!", true);
-                return;
-            }
-            
-            showToast("📥 Memproses import file...");
-            
-            try {
-                const text = await file.text();
-                const importedData = JSON.parse(text);
-                await processImportData(importedData);
-            } catch (error) {
-                console.error('Import error:', error);
-                showToast("❌ Gagal import: " + error.message, true);
-            }
-        }
-
-        async function importFromClipboard() {
-            const clipboardText = document.getElementById('import-clipboard').value.trim();
-            
-            if (!clipboardText) {
-                // Try to read from system clipboard
-                try {
-                    const text = await navigator.clipboard.readText();
-                    if (!text) {
-                        showToast("Paste data JSON di textarea atau copy ke clipboard terlebih dahulu!", true);
-                        return;
-                    }
-                    const importedData = JSON.parse(text);
-                    await processImportData(importedData);
-                } catch (err) {
-                    showToast("Clipboard kosong atau format tidak valid! Paste data di textarea.", true);
-                }
-                return;
-            }
-            
-            try {
-                const importedData = JSON.parse(clipboardText);
-                await processImportData(importedData);
-            } catch (error) {
-                console.error('Import error:', error);
-                showToast("❌ Gagal import: Format JSON tidak valid", true);
-            }
-        }
-
-        // Attach file input listener
-        document.addEventListener('DOMContentLoaded', () => {
-            const fileInput = document.getElementById('import-file');
-            if (fileInput) {
-                fileInput.addEventListener('change', importFromFile);
-            }
-        });
-
         // ==================== INIT ====================
         async function init() {
             await fetchAllData();
@@ -1051,6 +1076,12 @@
             document.getElementById('search-note').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
+            
+            // Tambahkan tombol backup di header bonus
+            const bonusHeader = document.querySelector('#bonus-cards-container');
+            if (bonusHeader) {
+                // Backup per user sudah ada di setiap card
+            }
         }
         
         init();
