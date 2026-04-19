@@ -3,33 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard Monitoring Transaksi - Rocky Hijab</title>
+    <title>Admin Panel - Rocky Hijab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .modal-backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .card-hover { transition: all 0.2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-6xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-4 py-6">
         
         <!-- Header -->
-        <div class="bg-white rounded-2xl shadow-md p-5 mb-6">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-5 mb-6 text-white">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
+                        <i class="fas fa-user-shield text-white text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-gray-800">Dashboard Monitoring</h1>
-                        <p class="text-xs text-gray-500">Lihat semua transaksi dari semua user</p>
+                        <h1 class="text-xl font-bold">Admin Panel - Rocky Hijab</h1>
+                        <p class="text-xs text-blue-100">Kelola semua data transaksi staff</p>
                     </div>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <button onclick="fetchTransactions()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
+                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-sm font-medium transition backdrop-blur">
                         <i class="fas fa-sync-alt mr-1"></i> Refresh
                     </button>
                     <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
@@ -38,74 +41,94 @@
                     <button onclick="exportToJSON()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
                         <i class="fas fa-code mr-1"></i> Export JSON
                     </button>
-                    <button onclick="showImportModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-                        <i class="fas fa-upload mr-1"></i> Import Data
+                    <button onclick="showAddModal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
+                        <i class="fas fa-plus mr-1"></i> Tambah Transaksi
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Statistik Ringkas -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+        <!-- Statistik -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500 card-hover">
                 <p class="text-xs text-gray-400">Total Transaksi</p>
-                <p id="stat-total-transaksi" class="text-2xl font-bold text-gray-800">0</p>
+                <p id="stat-total" class="text-2xl font-bold text-gray-800">0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500 card-hover">
                 <p class="text-xs text-gray-400">Total Omzet</p>
-                <p id="stat-total-omzet" class="text-2xl font-bold text-green-600">Rp 0</p>
+                <p id="stat-omzet" class="text-2xl font-bold text-green-600">Rp 0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500">
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500 card-hover">
                 <p class="text-xs text-gray-400">Jumlah User</p>
-                <p id="stat-total-user" class="text-2xl font-bold text-purple-600">0</p>
+                <p id="stat-users" class="text-2xl font-bold text-purple-600">0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500">
-                <p class="text-xs text-gray-400">Periode</p>
-                <p id="stat-periode" class="text-sm font-medium text-gray-700">Hari Ini</p>
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500 card-hover">
+                <p class="text-xs text-gray-400">Rata-rata per Transaksi</p>
+                <p id="stat-avg" class="text-lg font-bold text-orange-600">Rp 0</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500 card-hover">
+                <p class="text-xs text-gray-400">Transaksi Tertinggi</p>
+                <p id="stat-max" class="text-lg font-bold text-red-600">Rp 0</p>
             </div>
         </div>
 
-        <!-- Filter -->
+        <!-- Filter Bar -->
         <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="setFilter('today')" id="filter-today" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-blue-600 text-white">📅 Hari Ini</button>
-                    <button onclick="setFilter('yesterday')" id="filter-yesterday" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-600">📆 Kemarin</button>
-                    <button onclick="setFilter('week')" id="filter-week" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-600">📊 Minggu Ini</button>
-                    <button onclick="setFilter('month')" id="filter-month" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-600">📈 Bulan Ini</button>
-                    <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-gray-100 text-gray-600">🌐 Semua</button>
+            <div class="flex flex-col md:flex-row gap-3">
+                <div class="flex-1">
+                    <label class="text-xs text-gray-400">Filter Periode</label>
+                    <select id="filter-period" onchange="setFilterPeriod()" class="w-full px-3 py-2 border rounded-lg text-sm">
+                        <option value="all">🌐 Semua Waktu</option>
+                        <option value="today">📅 Hari Ini</option>
+                        <option value="yesterday">📆 Kemarin</option>
+                        <option value="week">📊 Minggu Ini</option>
+                        <option value="month">📈 Bulan Ini</option>
+                        <option value="custom">🎯 Custom Range</option>
+                    </select>
                 </div>
-                <div class="flex gap-2">
-                    <input type="date" id="date-start" class="px-3 py-2 border rounded-lg text-sm">
-                    <span class="self-center">-</span>
-                    <input type="date" id="date-end" class="px-3 py-2 border rounded-lg text-sm">
-                    <button onclick="filterByDateRange()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">Go</button>
+                <div id="date-range-container" class="flex-1 hidden">
+                    <label class="text-xs text-gray-400">Range Tanggal</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="date-start" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                        <span class="self-center">-</span>
+                        <input type="date" id="date-end" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-4 rounded-lg text-sm">Apply</button>
+                    </div>
                 </div>
-            </div>
-            <div class="flex gap-3 mt-4">
-                <input type="text" id="search-user" placeholder="Cari username..." class="flex-1 px-4 py-2 border rounded-lg text-sm">
-                <input type="text" id="search-note" placeholder="Cari keterangan..." class="flex-1 px-4 py-2 border rounded-lg text-sm">
-                <button onclick="applySearch()" class="bg-blue-500 text-white px-4 rounded-lg text-sm"><i class="fas fa-search"></i></button>
-                <button onclick="clearSearch()" class="bg-gray-300 text-gray-600 px-4 rounded-lg text-sm"><i class="fas fa-times"></i></button>
+                <div class="flex-1">
+                    <label class="text-xs text-gray-400">Cari User</label>
+                    <input type="text" id="search-user" placeholder="Username..." class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-gray-400">Cari Keterangan</label>
+                    <input type="text" id="search-note" placeholder="Keterangan..." class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applySearch()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm h-[42px]">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Tabel Transaksi -->
+        <!-- Tabel Data -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 border-b">
+                    <thead class="bg-gray-50 border-b sticky top-0">
                         <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal & Waktu</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Staff</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keterangan</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nominal</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="transactions-table" class="divide-y divide-gray-100">
+                    <tbody id="data-table" class="divide-y divide-gray-100">
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-400">
                                 <div class="loading-spinner mx-auto mb-2"></div>
                                 Memuat data...
                             </td>
@@ -114,32 +137,67 @@
                 </table>
             </div>
             <!-- Pagination -->
-            <div class="px-4 py-3 border-t flex justify-between items-center text-xs text-gray-500">
+            <div class="px-4 py-3 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
                 <span id="pagination-info">Menampilkan 0 dari 0 data</span>
                 <div class="flex gap-2">
-                    <button id="prev-page" onclick="prevPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50">← Prev</button>
-                    <button id="next-page" onclick="nextPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50">Next →</button>
+                    <button id="prev-page" onclick="prevPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-50">← Prev</button>
+                    <span id="page-numbers" class="flex gap-1"></span>
+                    <button id="next-page" onclick="nextPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-50">Next →</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Import -->
-    <div id="import-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6">
-            <div class="text-center mb-4">
-                <i class="fas fa-cloud-upload-alt text-green-500 text-5xl mb-3"></i>
-                <h3 class="text-xl font-bold">Import Data Transaksi</h3>
-                <p class="text-xs text-gray-500 mt-1">Upload file JSON hasil export</p>
+    <!-- Modal Tambah/Edit Transaksi -->
+    <div id="transaction-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-800">Tambah Transaksi</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Pilih File JSON</label>
-                <input type="file" id="import-file" accept=".json" class="w-full border rounded-lg p-2 text-sm">
-                <p class="text-[10px] text-gray-400 mt-2">⚠️ Import akan MENAMBAH data ke tabel yang sudah ada (tidak menghapus data lama)</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Username Staff *</label>
+                    <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="w-full p-3 border rounded-xl mt-1">
+                    <datalist id="user-list"></datalist>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Nama Staff</label>
+                    <input type="text" id="edit-name" placeholder="Akan terisi otomatis" readonly class="w-full p-3 border rounded-xl mt-1 bg-gray-50">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Keterangan / Item *</label>
+                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina, dll" class="w-full p-3 border rounded-xl mt-1">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Nominal (Rp) *</label>
+                    <input type="number" id="edit-amount" placeholder="0" class="w-full p-3 border rounded-xl mt-1">
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-700">Tanggal & Waktu</label>
+                    <input type="datetime-local" id="edit-time" class="w-full p-3 border rounded-xl mt-1">
+                </div>
+                <input type="hidden" id="edit-id">
             </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium">Batal</button>
+                <button onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Hapus -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Transaksi?</h3>
+            <p class="text-sm text-gray-500 mb-4">Data yang dihapus tidak dapat dikembalikan!</p>
+            <p id="delete-info" class="text-xs text-gray-400 mb-4"></p>
             <div class="flex gap-3">
-                <button onclick="closeImportModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium">Batal</button>
-                <button onclick="processImport()" class="flex-1 py-2 bg-green-600 text-white rounded-xl font-medium">Import</button>
+                <button onclick="closeDeleteModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium">Batal</button>
+                <button onclick="confirmDelete()" class="flex-1 py-2 bg-red-600 text-white rounded-xl font-medium">Hapus</button>
             </div>
         </div>
     </div>
@@ -151,19 +209,21 @@
 
     <script>
         // ==================== KONFIGURASI ====================
-        // ⚠️ GANTI DENGAN URL GAS WEB APP YANG SAMA DENGAN APLIKASI ASLI!
+        // ⚠️ GANTI DENGAN URL GAS WEB APP YANG SAMA!
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwruPxgynIUQV_kpe57S6LwcEFWdcJaDbiY8SEg7z9XuZ5GVrYFZL8PatkDj1SMZ05x/exec";
         
         // State
         let allTransactions = [];
         let filteredTransactions = [];
-        let currentFilter = 'today';
+        let allUsers = [];
         let currentPage = 1;
         let rowsPerPage = 20;
-        let searchUsername = '';
-        let searchNote = '';
+        let currentFilter = 'all';
         let customStartDate = null;
         let customEndDate = null;
+        let searchUsername = '';
+        let searchNote = '';
+        let pendingDeleteId = null;
 
         // Helper Functions
         function formatRupiah(angka) {
@@ -173,7 +233,6 @@
 
         function formatDateTime(dateTimeStr) {
             if (!dateTimeStr) return '-';
-            // Format: 2026-04-19 14:30:00 -> 19/04/2026 14:30
             if (dateTimeStr.includes(' ')) {
                 const [date, time] = dateTimeStr.split(' ');
                 const [year, month, day] = date.split('-');
@@ -185,13 +244,6 @@
         function getTodayDate() {
             const now = new Date();
             const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            return wibTime.toISOString().slice(0, 10);
-        }
-
-        function getYesterdayDate() {
-            const today = new Date();
-            const yesterday = new Date(today.getTime() - (24 * 60 * 60 * 1000));
-            const wibTime = new Date(yesterday.getTime() + (7 * 60 * 60 * 1000));
             return wibTime.toISOString().slice(0, 10);
         }
 
@@ -211,6 +263,12 @@
             return `${wibNow.getFullYear()}-${String(wibNow.getMonth() + 1).padStart(2, '0')}-01`;
         }
 
+        function getWIBForInput() {
+            const now = new Date();
+            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            return wibTime.toISOString().slice(0, 16);
+        }
+
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -220,63 +278,84 @@
             setTimeout(() => toast.classList.add('scale-0'), 3000);
         }
 
-        // ==================== FETCH DATA DARI SHEET ====================
-        async function fetchTransactions() {
-            showToast("🔄 Mengambil data transaksi...");
+        function setLoading(loading) {
+            const btn = document.querySelector('#transaction-modal button:last-child');
+            if (btn && loading) {
+                btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
+                btn.disabled = true;
+            } else if (btn && !loading) {
+                btn.innerHTML = 'Simpan';
+                btn.disabled = false;
+            }
+        }
+
+        // ==================== FETCH DATA ====================
+        async function fetchAllData() {
+            showToast("🔄 Mengambil data...");
             
             try {
-                const url = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
-                const response = await fetch(url);
-                const result = await response.json();
+                // Fetch transactions
+                const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
+                const trxResponse = await fetch(trxUrl);
+                const trxResult = await trxResponse.json();
                 
-                if (result.success && result.data) {
-                    allTransactions = result.data;
-                    console.log(`✅ Loaded ${allTransactions.length} transactions`);
-                    applyFiltersAndRender();
-                    showToast(`✅ ${allTransactions.length} transaksi dimuat`);
+                if (trxResult.success && trxResult.data) {
+                    allTransactions = trxResult.data;
                 } else {
-                    console.error('Failed to fetch:', result);
-                    showToast("❌ Gagal mengambil data", true);
                     allTransactions = [];
-                    renderTable();
                 }
+                
+                // Fetch users for dropdown
+                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
+                const usersResponse = await fetch(usersUrl);
+                const usersResult = await usersResponse.json();
+                
+                if (usersResult.success && usersResult.data) {
+                    allUsers = usersResult.data;
+                    updateUserDatalist();
+                }
+                
+                console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allUsers.length} users`);
+                applyFilters();
+                showToast(`✅ ${allTransactions.length} transaksi dimuat`);
+                
             } catch (error) {
                 console.error('Error fetching:', error);
-                showToast("❌ Gagal koneksi ke server", true);
+                showToast("❌ Gagal mengambil data", true);
                 allTransactions = [];
                 renderTable();
             }
         }
 
-        // ==================== FILTER FUNCTIONS ====================
-        function setFilter(filter) {
-            currentFilter = filter;
-            customStartDate = null;
-            customEndDate = null;
-            searchUsername = '';
-            searchNote = '';
-            
-            // Update UI buttons
-            document.querySelectorAll('[id^="filter-"]').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('bg-gray-100', 'text-gray-600');
-            });
-            const activeBtn = document.getElementById(`filter-${filter}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
-                activeBtn.classList.add('bg-blue-600', 'text-white');
+        function updateUserDatalist() {
+            const datalist = document.getElementById('user-list');
+            if (datalist) {
+                datalist.innerHTML = allUsers.map(u => 
+                    `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`
+                ).join('');
             }
-            
-            // Clear date inputs
-            document.getElementById('date-start').value = '';
-            document.getElementById('date-end').value = '';
-            document.getElementById('search-user').value = '';
-            document.getElementById('search-note').value = '';
-            
-            applyFiltersAndRender();
         }
 
-        function filterByDateRange() {
+        // ==================== FILTER FUNCTIONS ====================
+        function setFilterPeriod() {
+            const period = document.getElementById('filter-period').value;
+            currentFilter = period;
+            customStartDate = null;
+            customEndDate = null;
+            
+            const dateRangeContainer = document.getElementById('date-range-container');
+            if (period === 'custom') {
+                dateRangeContainer.classList.remove('hidden');
+                document.getElementById('date-start').value = getTodayDate();
+                document.getElementById('date-end').value = getTodayDate();
+            } else {
+                dateRangeContainer.classList.add('hidden');
+            }
+            
+            applyFilters();
+        }
+
+        function applyCustomRange() {
             const start = document.getElementById('date-start').value;
             const end = document.getElementById('date-end').value;
             
@@ -284,14 +363,7 @@
                 customStartDate = start;
                 customEndDate = end;
                 currentFilter = 'custom';
-                
-                // Reset button styles
-                document.querySelectorAll('[id^="filter-"]').forEach(btn => {
-                    btn.classList.remove('bg-blue-600', 'text-white');
-                    btn.classList.add('bg-gray-100', 'text-gray-600');
-                });
-                
-                applyFiltersAndRender();
+                applyFilters();
             } else {
                 showToast("Pilih tanggal awal dan akhir!", true);
             }
@@ -301,84 +373,50 @@
             searchUsername = document.getElementById('search-user').value.toLowerCase();
             searchNote = document.getElementById('search-note').value.toLowerCase();
             currentPage = 1;
-            applyFiltersAndRender();
+            applyFilters();
         }
 
-        function clearSearch() {
-            searchUsername = '';
-            searchNote = '';
-            document.getElementById('search-user').value = '';
-            document.getElementById('search-note').value = '';
-            currentPage = 1;
-            applyFiltersAndRender();
-        }
-
-        function applyFiltersAndRender() {
+        function applyFilters() {
             let filtered = [...allTransactions];
-            
-            // Filter berdasarkan periode
             const today = getTodayDate();
-            const yesterday = getYesterdayDate();
             const startOfWeek = getStartOfWeek();
             const startOfMonth = getStartOfMonth();
             
+            // Filter periode
             if (currentFilter === 'today') {
-                filtered = filtered.filter(t => {
-                    const tDate = t.time ? t.time.slice(0, 10) : '';
-                    return tDate === today;
-                });
-                document.getElementById('stat-periode').innerText = 'Hari Ini';
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === today);
             } 
             else if (currentFilter === 'yesterday') {
-                filtered = filtered.filter(t => {
-                    const tDate = t.time ? t.time.slice(0, 10) : '';
-                    return tDate === yesterday;
-                });
-                document.getElementById('stat-periode').innerText = 'Kemarin';
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().slice(0, 10);
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === yesterdayStr);
             }
             else if (currentFilter === 'week') {
-                filtered = filtered.filter(t => {
-                    const tDate = t.time ? t.time.slice(0, 10) : '';
-                    return tDate >= startOfWeek && tDate <= today;
-                });
-                document.getElementById('stat-periode').innerText = `Minggu Ini (${startOfWeek} s/d ${today})`;
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
             }
             else if (currentFilter === 'month') {
-                filtered = filtered.filter(t => {
-                    const tDate = t.time ? t.time.slice(0, 10) : '';
-                    return tDate >= startOfMonth && tDate <= today;
-                });
-                document.getElementById('stat-periode').innerText = `Bulan Ini (${startOfMonth} s/d ${today})`;
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
             }
             else if (currentFilter === 'custom' && customStartDate && customEndDate) {
                 filtered = filtered.filter(t => {
-                    const tDate = t.time ? t.time.slice(0, 10) : '';
+                    const tDate = (t.time || '').slice(0, 10);
                     return tDate >= customStartDate && tDate <= customEndDate;
                 });
-                document.getElementById('stat-periode').innerText = `${customStartDate} s/d ${customEndDate}`;
             }
-            // 'all' tidak perlu filter tanggal
             
-            // Filter berdasarkan username
+            // Filter user
             if (searchUsername) {
-                filtered = filtered.filter(t => 
-                    (t.user && t.user.toLowerCase().includes(searchUsername))
-                );
+                filtered = filtered.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
             }
             
-            // Filter berdasarkan keterangan
+            // Filter note
             if (searchNote) {
-                filtered = filtered.filter(t => 
-                    (t.note && t.note.toLowerCase().includes(searchNote))
-                );
+                filtered = filtered.filter(t => (t.note || '').toLowerCase().includes(searchNote));
             }
             
-            // Urutkan berdasarkan waktu (terbaru di atas)
-            filtered.sort((a, b) => {
-                const timeA = a.time || '';
-                const timeB = b.time || '';
-                return timeB.localeCompare(timeA);
-            });
+            // Urutkan dari terbaru
+            filtered.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
             
             filteredTransactions = filtered;
             updateStatistics();
@@ -387,17 +425,22 @@
         }
 
         function updateStatistics() {
+            const total = filteredTransactions.length;
             const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
             const uniqueUsers = new Set(filteredTransactions.map(t => t.user));
+            const avgOmzet = total > 0 ? Math.round(totalOmzet / total) : 0;
+            const maxOmzet = filteredTransactions.length > 0 ? Math.max(...filteredTransactions.map(t => t.amount || 0)) : 0;
             
-            document.getElementById('stat-total-transaksi').innerText = filteredTransactions.length;
-            document.getElementById('stat-total-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
-            document.getElementById('stat-total-user').innerText = uniqueUsers.size;
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
+            document.getElementById('stat-users').innerText = uniqueUsers.size;
+            document.getElementById('stat-avg').innerHTML = `Rp ${formatRupiah(avgOmzet)}`;
+            document.getElementById('stat-max').innerHTML = `Rp ${formatRupiah(maxOmzet)}`;
         }
 
         // ==================== RENDER TABLE ====================
         function renderTable() {
-            const tbody = document.getElementById('transactions-table');
+            const tbody = document.getElementById('data-table');
             const startIdx = (currentPage - 1) * rowsPerPage;
             const endIdx = startIdx + rowsPerPage;
             const pageData = filteredTransactions.slice(startIdx, endIdx);
@@ -405,34 +448,66 @@
             if (pageData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-400">
                             <i class="fas fa-inbox text-3xl mb-2 block"></i>
                             Tidak ada data transaksi
                         </td>
                     </tr>
                 `;
             } else {
-                tbody.innerHTML = pageData.map(t => `
+                tbody.innerHTML = pageData.map((t, idx) => `
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3 text-xs text-gray-500">${formatDateTime(t.time)}</td>
+                        <td class="px-4 py-3 text-xs text-gray-400">${startIdx + idx + 1}</td>
+                        <td class="px-4 py-3 text-xs text-gray-600">${formatDateTime(t.time)}</td>
                         <td class="px-4 py-3">
                             <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono">${escapeHtml(t.user || '-')}</span>
                         </td>
                         <td class="px-4 py-3 text-sm">${escapeHtml(t.name || '-')}</td>
                         <td class="px-4 py-3 text-sm">${escapeHtml(t.note || '-')}</td>
                         <td class="px-4 py-3 text-right font-bold text-green-600">Rp ${formatRupiah(t.amount)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 hover:text-blue-700 p-1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note)}', '${formatRupiah(t.amount)}')" class="text-red-500 hover:text-red-700 p-1">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `).join('');
             }
             
-            // Update pagination info
+            // Pagination info
             const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
             document.getElementById('pagination-info').innerHTML = `Menampilkan ${startIdx + 1} - ${Math.min(endIdx, filteredTransactions.length)} dari ${filteredTransactions.length} data`;
+            
+            // Page numbers
+            const pageNumbersDiv = document.getElementById('page-numbers');
+            if (pageNumbersDiv) {
+                let pageHtml = '';
+                const maxVisible = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                if (endPage - startPage + 1 < maxVisible) {
+                    startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+                for (let i = startPage; i <= endPage; i++) {
+                    pageHtml += `<button onclick="goToPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'}">${i}</button>`;
+                }
+                pageNumbersDiv.innerHTML = pageHtml;
+            }
             
             const prevBtn = document.getElementById('prev-page');
             const nextBtn = document.getElementById('next-page');
             if (prevBtn) prevBtn.disabled = currentPage === 1;
             if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
         }
 
         function prevPage() {
@@ -452,12 +527,199 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
+            return String(str).replace(/[&<>]/g, function(m) {
                 if (m === '&') return '&amp;';
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
                 return m;
             });
+        }
+
+        // ==================== CRUD OPERATIONS ====================
+        function showAddModal() {
+            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('edit-username').value = '';
+            document.getElementById('edit-name').value = '';
+            document.getElementById('edit-note').value = '';
+            document.getElementById('edit-amount').value = '';
+            document.getElementById('edit-time').value = getWIBForInput();
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            // Auto-fill name when username selected
+            const usernameInput = document.getElementById('edit-username');
+            usernameInput.onchange = function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('edit-name').value = user.name;
+                } else {
+                    document.getElementById('edit-name').value = '';
+                }
+            };
+        }
+
+        function showEditModal(id) {
+            const transaction = allTransactions.find(t => t.id == id);
+            if (!transaction) return;
+            
+            document.getElementById('modal-title').innerText = 'Edit Transaksi';
+            document.getElementById('edit-id').value = transaction.id;
+            document.getElementById('edit-username').value = transaction.user || '';
+            document.getElementById('edit-name').value = transaction.name || '';
+            document.getElementById('edit-note').value = transaction.note || '';
+            document.getElementById('edit-amount').value = transaction.amount || '';
+            
+            let timeValue = transaction.time || '';
+            if (timeValue && timeValue.includes(' ')) {
+                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
+            }
+            document.getElementById('edit-time').value = timeValue || getWIBForInput();
+            
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            const usernameInput = document.getElementById('edit-username');
+            usernameInput.onchange = function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('edit-name').value = user.name;
+                }
+            };
+        }
+
+        async function saveTransaction() {
+            const id = document.getElementById('edit-id').value;
+            const username = document.getElementById('edit-username').value.trim();
+            const name = document.getElementById('edit-name').value.trim();
+            const note = document.getElementById('edit-note').value.trim();
+            const amount = parseInt(document.getElementById('edit-amount').value);
+            let time = document.getElementById('edit-time').value;
+            
+            if (!username) {
+                showToast("Username harus diisi!", true);
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showToast("Nominal harus diisi dan lebih dari 0!", true);
+                return;
+            }
+            if (!note) {
+                showToast("Keterangan harus diisi!", true);
+                return;
+            }
+            
+            if (time) {
+                time = time.replace('T', ' ') + ':00';
+            } else {
+                const now = new Date();
+                const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+                time = wibTime.toISOString().replace('T', ' ').slice(0, 19);
+            }
+            
+            setLoading(true);
+            
+            try {
+                let response;
+                if (id) {
+                    // Update existing transaction - DELETE old then ADD new
+                    const deleteResponse = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'delete_transaction',
+                            payload: { serverId: id.toString() }
+                        })
+                    });
+                    
+                    // Add new transaction
+                    response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi berhasil diupdate!");
+                } else {
+                    // Add new transaction
+                    response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi berhasil ditambahkan!");
+                }
+                
+                closeModal();
+                await fetchAllData();
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast("❌ Gagal menyimpan transaksi", true);
+            }
+            
+            setLoading(false);
+        }
+
+        function showDeleteModal(id, note, amount) {
+            pendingDeleteId = id;
+            document.getElementById('delete-info').innerHTML = `${note}<br>Rp ${amount}`;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        async function confirmDelete() {
+            if (!pendingDeleteId) return;
+            
+            setLoading(true);
+            
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'delete_transaction',
+                        payload: { serverId: pendingDeleteId.toString() }
+                    })
+                });
+                
+                showToast("✅ Transaksi berhasil dihapus!");
+                closeDeleteModal();
+                await fetchAllData();
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast("❌ Gagal menghapus transaksi", true);
+            }
+            
+            setLoading(false);
+        }
+
+        function closeModal() {
+            document.getElementById('transaction-modal').classList.add('hidden');
         }
 
         // ==================== EXPORT FUNCTIONS ====================
@@ -467,8 +729,9 @@
                 return;
             }
             
-            const headers = ['Tanggal & Waktu', 'User', 'Nama', 'Keterangan', 'Nominal'];
+            const headers = ['ID', 'Tanggal & Waktu', 'User', 'Nama Staff', 'Keterangan', 'Nominal'];
             const rows = filteredTransactions.map(t => [
+                t.id || '',
                 t.time || '',
                 t.user || '',
                 t.name || '',
@@ -521,76 +784,17 @@
             showToast(`✅ Export JSON: ${filteredTransactions.length} transaksi`);
         }
 
-        // ==================== IMPORT FUNCTIONS ====================
-        function showImportModal() {
-            document.getElementById('import-modal').classList.remove('hidden');
-            document.getElementById('import-file').value = '';
-        }
-
-        function closeImportModal() {
-            document.getElementById('import-modal').classList.add('hidden');
-        }
-
-        async function processImport() {
-            const fileInput = document.getElementById('import-file');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showToast("Pilih file JSON terlebih dahulu!", true);
-                return;
-            }
-            
-            showToast("📥 Memproses import...");
-            
-            try {
-                const text = await file.text();
-                const importedData = JSON.parse(text);
-                
-                let newTransactions = [];
-                if (importedData.data && Array.isArray(importedData.data)) {
-                    newTransactions = importedData.data;
-                } else if (Array.isArray(importedData)) {
-                    newTransactions = importedData;
-                } else if (importedData.transactions && Array.isArray(importedData.transactions)) {
-                    newTransactions = importedData.transactions;
-                } else {
-                    throw new Error("Format file tidak dikenali");
-                }
-                
-                if (newTransactions.length === 0) {
-                    showToast("Tidak ada data transaksi dalam file", true);
-                    return;
-                }
-                
-                // Merge dengan data yang sudah ada (hindari duplikat berdasarkan ID)
-                const existingIds = new Set(allTransactions.map(t => t.id));
-                let addedCount = 0;
-                
-                for (const newTrx of newTransactions) {
-                    if (!existingIds.has(newTrx.id)) {
-                        allTransactions.push(newTrx);
-                        addedCount++;
-                    }
-                }
-                
-                showToast(`✅ Import berhasil! Menambah ${addedCount} transaksi baru`);
-                closeImportModal();
-                applyFiltersAndRender();
-                
-            } catch (error) {
-                console.error('Import error:', error);
-                showToast("❌ Gagal import: " + error.message, true);
-            }
-        }
-
         // ==================== INIT ====================
         async function init() {
-            await fetchTransactions();
+            await fetchAllData();
             
-            // Set default date range inputs
-            const today = getTodayDate();
-            document.getElementById('date-start').value = today;
-            document.getElementById('date-end').value = today;
+            // Event listener for search on Enter
+            document.getElementById('search-user').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applySearch();
+            });
+            document.getElementById('search-note').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applySearch();
+            });
         }
         
         init();
