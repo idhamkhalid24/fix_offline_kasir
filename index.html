@@ -2,82 +2,138 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Admin Panel - Rocky Hijab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .modal-backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .card-hover { transition: all 0.2s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f4f6;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .card-hover {
+            transition: all 0.2s ease;
+        }
+        .card-hover:active {
+            transform: scale(0.98);
+        }
+        .btn-touch {
+            min-height: 48px;
+            cursor: pointer;
+        }
+        .table-row:active {
+            background-color: #f3f4f6;
+        }
+        /* Sticky header untuk tabel di mobile */
+        .sticky-header th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+        /* Scroll horizontal halus */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Better touch targets */
+        button, .clickable {
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        /* Hide spinner on number input */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-5 mb-6 text-white">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <!-- Header dengan Gradient -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 sm:mb-6 text-white">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
-                        <i class="fas fa-user-shield text-white text-xl"></i>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
+                        <i class="fas fa-user-shield text-white text-lg sm:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-xs text-blue-100">Kelola semua data transaksi staff</p>
+                        <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
+                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola semua data transaksi staff</p>
                     </div>
                 </div>
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-sm font-medium transition backdrop-blur">
+                <div class="flex gap-2 flex-wrap w-full sm:w-auto">
+                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
                         <i class="fas fa-sync-alt mr-1"></i> Refresh
                     </button>
-                    <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-                        <i class="fas fa-file-excel mr-1"></i> Export CSV
+                    <button onclick="showExportOptions()" class="bg-green-600 hover:bg-green-700 active:bg-green-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
+                        <i class="fas fa-download mr-1"></i> Export
                     </button>
-                    <button onclick="exportToJSON()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-                        <i class="fas fa-code mr-1"></i> Export JSON
+                    <button onclick="showImportOptions()" class="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
+                        <i class="fas fa-upload mr-1"></i> Import
                     </button>
-                    <button onclick="showAddModal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-                        <i class="fas fa-plus mr-1"></i> Tambah Transaksi
+                    <button onclick="showAddModal()" class="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
+                        <i class="fas fa-plus mr-1"></i> Tambah
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Statistik -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500 card-hover">
-                <p class="text-xs text-gray-400">Total Transaksi</p>
-                <p id="stat-total" class="text-2xl font-bold text-gray-800">0</p>
+        <!-- Statistik - Grid responsive -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 sm:mb-6">
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-blue-500 card-hover">
+                <p class="text-[10px] text-gray-400">Total Transaksi</p>
+                <p id="stat-total" class="text-xl sm:text-2xl font-bold text-gray-800">0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500 card-hover">
-                <p class="text-xs text-gray-400">Total Omzet</p>
-                <p id="stat-omzet" class="text-2xl font-bold text-green-600">Rp 0</p>
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-green-500 card-hover">
+                <p class="text-[10px] text-gray-400">Total Omzet</p>
+                <p id="stat-omzet" class="text-sm sm:text-lg font-bold text-green-600 truncate">Rp 0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500 card-hover">
-                <p class="text-xs text-gray-400">Jumlah User</p>
-                <p id="stat-users" class="text-2xl font-bold text-purple-600">0</p>
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-purple-500 card-hover">
+                <p class="text-[10px] text-gray-400">Jumlah User</p>
+                <p id="stat-users" class="text-xl sm:text-2xl font-bold text-purple-600">0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500 card-hover">
-                <p class="text-xs text-gray-400">Rata-rata per Transaksi</p>
-                <p id="stat-avg" class="text-lg font-bold text-orange-600">Rp 0</p>
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-orange-500 card-hover">
+                <p class="text-[10px] text-gray-400">Rata-rata</p>
+                <p id="stat-avg" class="text-xs sm:text-sm font-bold text-orange-600 truncate">Rp 0</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500 card-hover">
-                <p class="text-xs text-gray-400">Transaksi Tertinggi</p>
-                <p id="stat-max" class="text-lg font-bold text-red-600">Rp 0</p>
+            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-red-500 card-hover">
+                <p class="text-[10px] text-gray-400">Tertinggi</p>
+                <p id="stat-max" class="text-xs sm:text-sm font-bold text-red-600 truncate">Rp 0</p>
             </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div class="flex flex-col md:flex-row gap-3">
-                <div class="flex-1">
-                    <label class="text-xs text-gray-400">Filter Periode</label>
-                    <select id="filter-period" onchange="setFilterPeriod()" class="w-full px-3 py-2 border rounded-lg text-sm">
+        <!-- Filter Bar - Mobile Friendly -->
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4">
+            <div class="space-y-3">
+                <div class="flex gap-2">
+                    <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white btn-touch">
                         <option value="all">🌐 Semua Waktu</option>
                         <option value="today">📅 Hari Ini</option>
                         <option value="yesterday">📆 Kemarin</option>
@@ -86,44 +142,43 @@
                         <option value="custom">🎯 Custom Range</option>
                     </select>
                 </div>
-                <div id="date-range-container" class="flex-1 hidden">
-                    <label class="text-xs text-gray-400">Range Tanggal</label>
+                
+                <div id="date-range-container" class="hidden">
                     <div class="flex gap-2">
                         <input type="date" id="date-start" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <span class="self-center">-</span>
+                        <span class="self-center text-gray-400">-</span>
                         <input type="date" id="date-end" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-4 rounded-lg text-sm">Apply</button>
+                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-4 rounded-lg text-sm btn-touch">Apply</button>
                     </div>
                 </div>
-                <div class="flex-1">
-                    <label class="text-xs text-gray-400">Cari User</label>
-                    <input type="text" id="search-user" placeholder="Username..." class="w-full px-3 py-2 border rounded-lg text-sm">
-                </div>
-                <div class="flex-1">
-                    <label class="text-xs text-gray-400">Cari Keterangan</label>
-                    <input type="text" id="search-note" placeholder="Keterangan..." class="w-full px-3 py-2 border rounded-lg text-sm">
-                </div>
-                <div class="flex items-end">
-                    <button onclick="applySearch()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm h-[42px]">
-                        <i class="fas fa-search"></i> Cari
+                
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <input type="text" id="search-user" placeholder="Cari username..." class="w-full px-3 py-2 border rounded-lg text-sm">
+                    </div>
+                    <div class="flex-1">
+                        <input type="text" id="search-note" placeholder="Cari keterangan..." class="w-full px-3 py-2 border rounded-lg text-sm">
+                    </div>
+                    <button onclick="applySearch()" class="bg-blue-600 text-white px-4 rounded-lg text-sm btn-touch">
+                        <i class="fas fa-search"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Tabel Data -->
+        <!-- Tabel Data - Mobile friendly dengan horizontal scroll -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 border-b sticky top-0">
+            <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+                <table class="w-full text-sm min-w-[600px]">
+                    <thead class="bg-gray-50 border-b sticky-header">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal & Waktu</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Staff</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keterangan</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nominal</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal & Waktu</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keterangan</th>
+                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nominal</th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="data-table" class="divide-y divide-gray-100">
@@ -136,13 +191,14 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination -->
-            <div class="px-4 py-3 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
+            
+            <!-- Pagination Mobile Friendly -->
+            <div class="px-3 py-3 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
                 <span id="pagination-info">Menampilkan 0 dari 0 data</span>
-                <div class="flex gap-2">
-                    <button id="prev-page" onclick="prevPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-50">← Prev</button>
+                <div class="flex gap-2 items-center">
+                    <button id="prev-page" onclick="prevPage()" class="px-3 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 btn-touch">← Prev</button>
                     <span id="page-numbers" class="flex gap-1"></span>
-                    <button id="next-page" onclick="nextPage()" class="px-3 py-1 border rounded-lg disabled:opacity-50 hover:bg-gray-50">Next →</button>
+                    <button id="next-page" onclick="nextPage()" class="px-3 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 btn-touch">Next →</button>
                 </div>
             </div>
         </div>
@@ -150,40 +206,40 @@
 
     <!-- Modal Tambah/Edit Transaksi -->
     <div id="transaction-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <div class="bg-white rounded-2xl w-full max-w-md p-5 shadow-2xl" style="max-height: 90vh; overflow-y: auto;">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-title" class="text-xl font-bold text-gray-800">Tambah Transaksi</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 id="modal-title" class="text-lg font-bold text-gray-800">Tambah Transaksi</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-2">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
             <div class="space-y-4">
                 <div>
                     <label class="text-sm font-medium text-gray-700">Username Staff *</label>
-                    <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="w-full p-3 border rounded-xl mt-1">
+                    <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="w-full p-3 border rounded-xl mt-1 text-base" autocomplete="off">
                     <datalist id="user-list"></datalist>
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Nama Staff</label>
-                    <input type="text" id="edit-name" placeholder="Akan terisi otomatis" readonly class="w-full p-3 border rounded-xl mt-1 bg-gray-50">
+                    <input type="text" id="edit-name" placeholder="Akan terisi otomatis" readonly class="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-base">
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Keterangan / Item *</label>
-                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina, dll" class="w-full p-3 border rounded-xl mt-1">
+                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina, dll" class="w-full p-3 border rounded-xl mt-1 text-base">
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Nominal (Rp) *</label>
-                    <input type="number" id="edit-amount" placeholder="0" class="w-full p-3 border rounded-xl mt-1">
+                    <input type="number" id="edit-amount" placeholder="0" class="w-full p-3 border rounded-xl mt-1 text-base text-right font-bold">
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Tanggal & Waktu</label>
-                    <input type="datetime-local" id="edit-time" class="w-full p-3 border rounded-xl mt-1">
+                    <input type="datetime-local" id="edit-time" class="w-full p-3 border rounded-xl mt-1 text-base">
                 </div>
                 <input type="hidden" id="edit-id">
             </div>
             <div class="flex gap-3 mt-6">
-                <button onclick="closeModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium">Batal</button>
-                <button onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium">Simpan</button>
+                <button onclick="closeModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
+                <button onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch">Simpan</button>
             </div>
         </div>
     </div>
@@ -194,22 +250,72 @@
             <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
             <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Transaksi?</h3>
             <p class="text-sm text-gray-500 mb-4">Data yang dihapus tidak dapat dikembalikan!</p>
-            <p id="delete-info" class="text-xs text-gray-400 mb-4"></p>
+            <p id="delete-info" class="text-xs text-gray-400 mb-4 bg-gray-50 p-2 rounded-lg"></p>
             <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium">Batal</button>
-                <button onclick="confirmDelete()" class="flex-1 py-2 bg-red-600 text-white rounded-xl font-medium">Hapus</button>
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
+                <button onclick="confirmDelete()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-medium btn-touch">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Export Options -->
+    <div id="export-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+            <div class="text-center mb-4">
+                <i class="fas fa-download text-green-500 text-4xl mb-2"></i>
+                <h3 class="text-lg font-bold text-gray-800">Export Data</h3>
+                <p class="text-xs text-gray-500">Pilih metode export</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="exportToCSV()" class="w-full py-3 bg-green-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
+                    <i class="fas fa-file-excel"></i> Export ke CSV
+                </button>
+                <button onclick="exportToJSON()" class="w-full py-3 bg-purple-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
+                    <i class="fas fa-code"></i> Export ke JSON
+                </button>
+                <button onclick="exportToClipboard()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 btn-touch">
+                    <i class="fas fa-clipboard"></i> Copy ke Clipboard (JSON)
+                </button>
+            </div>
+            <button onclick="closeExportModal()" class="w-full mt-4 py-2 bg-gray-200 rounded-xl font-medium btn-touch">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal Import Options -->
+    <div id="import-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6">
+            <div class="text-center mb-4">
+                <i class="fas fa-upload text-orange-500 text-4xl mb-2"></i>
+                <h3 class="text-lg font-bold text-gray-800">Import Data</h3>
+                <p class="text-xs text-gray-500">Pilih metode import</p>
+            </div>
+            <div class="space-y-4">
+                <div class="border rounded-xl p-3">
+                    <label class="text-sm font-medium text-gray-700 block mb-2">📁 Upload File JSON</label>
+                    <input type="file" id="import-file" accept=".json" class="w-full text-sm">
+                </div>
+                <div class="border rounded-xl p-3">
+                    <label class="text-sm font-medium text-gray-700 block mb-2">📋 Paste dari Clipboard</label>
+                    <textarea id="import-clipboard" rows="4" placeholder="Tempel JSON data di sini..." class="w-full p-3 border rounded-xl text-xs font-mono"></textarea>
+                    <button onclick="importFromClipboard()" class="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg text-sm btn-touch">
+                        <i class="fas fa-clipboard"></i> Import dari Clipboard
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="closeImportModal()" class="flex-1 py-2 bg-gray-200 rounded-xl font-medium btn-touch">Tutup</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="white-space: nowrap; max-width: 90vw; white-space: normal; text-align: center;">
         Notifikasi
     </div>
 
     <script>
         // ==================== KONFIGURASI ====================
-        // ⚠️ GANTI DENGAN URL GAS WEB APP YANG SAMA!
+        // ⚠️ GANTI DENGAN URL GAS WEB APP ANDA!
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwruPxgynIUQV_kpe57S6LwcEFWdcJaDbiY8SEg7z9XuZ5GVrYFZL8PatkDj1SMZ05x/exec";
         
         // State
@@ -217,7 +323,7 @@
         let filteredTransactions = [];
         let allUsers = [];
         let currentPage = 1;
-        let rowsPerPage = 20;
+        let rowsPerPage = 15;
         let currentFilter = 'all';
         let customStartDate = null;
         let customEndDate = null;
@@ -273,19 +379,25 @@
             const toast = document.getElementById('toast');
             toast.innerText = msg;
             toast.classList.remove('scale-0');
+            toast.classList.add('scale-100');
             if (isError) toast.classList.add('bg-red-600');
             else toast.classList.remove('bg-red-600');
-            setTimeout(() => toast.classList.add('scale-0'), 3000);
+            setTimeout(() => {
+                toast.classList.remove('scale-100');
+                toast.classList.add('scale-0');
+            }, 3000);
         }
 
-        function setLoading(loading) {
-            const btn = document.querySelector('#transaction-modal button:last-child');
-            if (btn && loading) {
-                btn.innerHTML = '<div class="loading-spinner"></div> Menyimpan...';
-                btn.disabled = true;
-            } else if (btn && !loading) {
-                btn.innerHTML = 'Simpan';
-                btn.disabled = false;
+        function setLoading(loading, btnId = null) {
+            if (btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn && loading) {
+                    btn.innerHTML = '<div class="loading-spinner"></div>';
+                    btn.disabled = true;
+                } else if (btn && !loading) {
+                    btn.innerHTML = btn.getAttribute('data-original') || 'Simpan';
+                    btn.disabled = false;
+                }
             }
         }
 
@@ -294,7 +406,6 @@
             showToast("🔄 Mengambil data...");
             
             try {
-                // Fetch transactions
                 const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
                 const trxResponse = await fetch(trxUrl);
                 const trxResult = await trxResponse.json();
@@ -305,7 +416,6 @@
                     allTransactions = [];
                 }
                 
-                // Fetch users for dropdown
                 const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
                 const usersResponse = await fetch(usersUrl);
                 const usersResult = await usersResponse.json();
@@ -363,6 +473,7 @@
                 customStartDate = start;
                 customEndDate = end;
                 currentFilter = 'custom';
+                document.getElementById('filter-period').value = 'custom';
                 applyFilters();
             } else {
                 showToast("Pilih tanggal awal dan akhir!", true);
@@ -382,7 +493,6 @@
             const startOfWeek = getStartOfWeek();
             const startOfMonth = getStartOfMonth();
             
-            // Filter periode
             if (currentFilter === 'today') {
                 filtered = filtered.filter(t => (t.time || '').slice(0, 10) === today);
             } 
@@ -405,17 +515,14 @@
                 });
             }
             
-            // Filter user
             if (searchUsername) {
                 filtered = filtered.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
             }
             
-            // Filter note
             if (searchNote) {
                 filtered = filtered.filter(t => (t.note || '').toLowerCase().includes(searchNote));
             }
             
-            // Urutkan dari terbaru
             filtered.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
             
             filteredTransactions = filtered;
@@ -456,21 +563,21 @@
                 `;
             } else {
                 tbody.innerHTML = pageData.map((t, idx) => `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3 text-xs text-gray-400">${startIdx + idx + 1}</td>
-                        <td class="px-4 py-3 text-xs text-gray-600">${formatDateTime(t.time)}</td>
-                        <td class="px-4 py-3">
+                    <tr class="table-row">
+                        <td class="px-3 py-3 text-xs text-gray-400">${startIdx + idx + 1}</td>
+                        <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${formatDateTime(t.time)}</td>
+                        <td class="px-3 py-3">
                             <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono">${escapeHtml(t.user || '-')}</span>
                         </td>
-                        <td class="px-4 py-3 text-sm">${escapeHtml(t.name || '-')}</td>
-                        <td class="px-4 py-3 text-sm">${escapeHtml(t.note || '-')}</td>
-                        <td class="px-4 py-3 text-right font-bold text-green-600">Rp ${formatRupiah(t.amount)}</td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-3 py-3 text-sm">${escapeHtml(t.name || '-')}</td>
+                        <td class="px-3 py-3 text-sm max-w-[150px] truncate">${escapeHtml(t.note || '-')}</td>
+                        <td class="px-3 py-3 text-right font-bold text-green-600 whitespace-nowrap">Rp ${formatRupiah(t.amount)}</td>
+                        <td class="px-3 py-3 text-center whitespace-nowrap">
                             <div class="flex gap-2 justify-center">
-                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 hover:text-blue-700 p-1">
+                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg active:bg-blue-50 btn-touch">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note)}', '${formatRupiah(t.amount)}')" class="text-red-500 hover:text-red-700 p-1">
+                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}')" class="text-red-500 hover:text-red-700 p-2 rounded-lg active:bg-red-50 btn-touch">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -479,22 +586,20 @@
                 `).join('');
             }
             
-            // Pagination info
             const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
             document.getElementById('pagination-info').innerHTML = `Menampilkan ${startIdx + 1} - ${Math.min(endIdx, filteredTransactions.length)} dari ${filteredTransactions.length} data`;
             
-            // Page numbers
             const pageNumbersDiv = document.getElementById('page-numbers');
             if (pageNumbersDiv) {
                 let pageHtml = '';
-                const maxVisible = 5;
+                const maxVisible = 3;
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisible - 1);
                 if (endPage - startPage + 1 < maxVisible) {
                     startPage = Math.max(1, endPage - maxVisible + 1);
                 }
                 for (let i = startPage; i <= endPage; i++) {
-                    pageHtml += `<button onclick="goToPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'}">${i}</button>`;
+                    pageHtml += `<button onclick="goToPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'} btn-touch">${i}</button>`;
                 }
                 pageNumbersDiv.innerHTML = pageHtml;
             }
@@ -546,7 +651,6 @@
             document.getElementById('edit-time').value = getWIBForInput();
             document.getElementById('transaction-modal').classList.remove('hidden');
             
-            // Auto-fill name when username selected
             const usernameInput = document.getElementById('edit-username');
             usernameInput.onchange = function() {
                 const user = allUsers.find(u => u.username === this.value);
@@ -615,13 +719,11 @@
                 time = wibTime.toISOString().replace('T', ' ').slice(0, 19);
             }
             
-            setLoading(true);
+            showToast("🔄 Menyimpan...");
             
             try {
-                let response;
                 if (id) {
-                    // Update existing transaction - DELETE old then ADD new
-                    const deleteResponse = await fetch(GAS_WEB_APP_URL, {
+                    await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
@@ -631,8 +733,7 @@
                         })
                     });
                     
-                    // Add new transaction
-                    response = await fetch(GAS_WEB_APP_URL, {
+                    await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
@@ -649,8 +750,7 @@
                     });
                     showToast("✅ Transaksi berhasil diupdate!");
                 } else {
-                    // Add new transaction
-                    response = await fetch(GAS_WEB_APP_URL, {
+                    await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
@@ -675,13 +775,11 @@
                 console.error('Save error:', error);
                 showToast("❌ Gagal menyimpan transaksi", true);
             }
-            
-            setLoading(false);
         }
 
         function showDeleteModal(id, note, amount) {
             pendingDeleteId = id;
-            document.getElementById('delete-info').innerHTML = `${note}<br>Rp ${amount}`;
+            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
             document.getElementById('delete-modal').classList.remove('hidden');
         }
 
@@ -693,7 +791,7 @@
         async function confirmDelete() {
             if (!pendingDeleteId) return;
             
-            setLoading(true);
+            showToast("🔄 Menghapus...");
             
             try {
                 await fetch(GAS_WEB_APP_URL, {
@@ -714,8 +812,6 @@
                 console.error('Delete error:', error);
                 showToast("❌ Gagal menghapus transaksi", true);
             }
-            
-            setLoading(false);
         }
 
         function closeModal() {
@@ -723,6 +819,14 @@
         }
 
         // ==================== EXPORT FUNCTIONS ====================
+        function showExportOptions() {
+            document.getElementById('export-modal').classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.add('hidden');
+        }
+
         function exportToCSV() {
             if (filteredTransactions.length === 0) {
                 showToast("Tidak ada data untuk diexport", true);
@@ -754,6 +858,7 @@
             URL.revokeObjectURL(url);
             
             showToast(`✅ Export CSV: ${filteredTransactions.length} transaksi`);
+            closeExportModal();
         }
 
         function exportToJSON() {
@@ -782,13 +887,164 @@
             URL.revokeObjectURL(url);
             
             showToast(`✅ Export JSON: ${filteredTransactions.length} transaksi`);
+            closeExportModal();
         }
+
+        async function exportToClipboard() {
+            if (filteredTransactions.length === 0) {
+                showToast("Tidak ada data untuk diexport", true);
+                return;
+            }
+            
+            const exportData = {
+                version: "1.0",
+                exportDate: new Date().toISOString(),
+                filter: currentFilter,
+                totalRecords: filteredTransactions.length,
+                data: filteredTransactions
+            };
+            
+            const jsonStr = JSON.stringify(exportData, null, 2);
+            
+            try {
+                await navigator.clipboard.writeText(jsonStr);
+                showToast(`✅ ${filteredTransactions.length} transaksi disalin ke clipboard!`);
+                closeExportModal();
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonStr;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast(`✅ ${filteredTransactions.length} transaksi disalin ke clipboard!`);
+                closeExportModal();
+            }
+        }
+
+        // ==================== IMPORT FUNCTIONS ====================
+        function showImportOptions() {
+            document.getElementById('import-modal').classList.remove('hidden');
+            document.getElementById('import-file').value = '';
+            document.getElementById('import-clipboard').value = '';
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').classList.add('hidden');
+        }
+
+        async function processImportData(importedData) {
+            let newTransactions = [];
+            
+            if (importedData.data && Array.isArray(importedData.data)) {
+                newTransactions = importedData.data;
+            } else if (Array.isArray(importedData)) {
+                newTransactions = importedData;
+            } else if (importedData.transactions && Array.isArray(importedData.transactions)) {
+                newTransactions = importedData.transactions;
+            } else {
+                throw new Error("Format file tidak dikenali");
+            }
+            
+            if (newTransactions.length === 0) {
+                throw new Error("Tidak ada data transaksi dalam file");
+            }
+            
+            const existingIds = new Set(allTransactions.map(t => t.id));
+            let addedCount = 0;
+            let duplicateCount = 0;
+            
+            for (const newTrx of newTransactions) {
+                if (!existingIds.has(newTrx.id)) {
+                    allTransactions.push(newTrx);
+                    addedCount++;
+                } else {
+                    duplicateCount++;
+                }
+            }
+            
+            showToast(`✅ Import selesai! Menambah ${addedCount} transaksi baru (${duplicateCount} duplikat diabaikan)`);
+            closeImportModal();
+            applyFilters();
+            
+            // Optional: Sync to server? Uncomment if needed
+            // for (const newTrx of newTransactions) {
+            //     if (!existingIds.has(newTrx.id)) {
+            //         await fetch(GAS_WEB_APP_URL, {
+            //             method: 'POST',
+            //             mode: 'no-cors',
+            //             headers: { 'Content-Type': 'application/json' },
+            //             body: JSON.stringify({
+            //                 type: 'transaction',
+            //                 payload: newTrx
+            //             })
+            //         });
+            //     }
+            // }
+        }
+
+        async function importFromFile() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showToast("Pilih file JSON terlebih dahulu!", true);
+                return;
+            }
+            
+            showToast("📥 Memproses import file...");
+            
+            try {
+                const text = await file.text();
+                const importedData = JSON.parse(text);
+                await processImportData(importedData);
+            } catch (error) {
+                console.error('Import error:', error);
+                showToast("❌ Gagal import: " + error.message, true);
+            }
+        }
+
+        async function importFromClipboard() {
+            const clipboardText = document.getElementById('import-clipboard').value.trim();
+            
+            if (!clipboardText) {
+                // Try to read from system clipboard
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (!text) {
+                        showToast("Paste data JSON di textarea atau copy ke clipboard terlebih dahulu!", true);
+                        return;
+                    }
+                    const importedData = JSON.parse(text);
+                    await processImportData(importedData);
+                } catch (err) {
+                    showToast("Clipboard kosong atau format tidak valid! Paste data di textarea.", true);
+                }
+                return;
+            }
+            
+            try {
+                const importedData = JSON.parse(clipboardText);
+                await processImportData(importedData);
+            } catch (error) {
+                console.error('Import error:', error);
+                showToast("❌ Gagal import: Format JSON tidak valid", true);
+            }
+        }
+
+        // Attach file input listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('import-file');
+            if (fileInput) {
+                fileInput.addEventListener('change', importFromFile);
+            }
+        });
 
         // ==================== INIT ====================
         async function init() {
             await fetchAllData();
             
-            // Event listener for search on Enter
             document.getElementById('search-user').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
