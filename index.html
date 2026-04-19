@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title> Rocky Hijab</title>
+    <title>Admin - Rocky Hijab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -125,6 +125,12 @@
         .leaderboard-item {
             transition: all 0.2s ease;
         }
+        .download-btn {
+            background: #10b981;
+        }
+        .download-btn:hover {
+            background: #059669;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -151,7 +157,7 @@
                             <i class="fas fa-store text-white text-2xl"></i>
                         </div>
                         <h2 class="text-xl font-bold text-gray-800">Rocky Hijab</h2>
-                        <p class="text-xs text-gray-500">Koleksi Terbaik Untuk Muslimah Hebat</p>
+                        <p class="text-xs text-gray-500">Koleksi terbaik untuk muslimah hebat</p>
                     </div>
                     <div class="space-y-4">
                         <div>
@@ -165,8 +171,8 @@
                         <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold btn-touch">Login</button>
                     </div>
                     <p class="text-center text-xs text-gray-400 mt-4">
-                        🔐 <strong>Super Admin:</strong> Hubungi admin ganteng<br>
-                        👤 <strong>User Staff:</strong> Login dengan username & PIN terdaftar
+                        🔐 <strong>Super Admin:</strong> Hubungi Admin<br>
+                        👤 <strong>User Staff:</strong> Login dengan username & PIN
                     </p>
                 </div>
             </div>
@@ -192,6 +198,9 @@
                         </button>
                         <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="bg-green-500/70 hover:bg-green-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch hidden">
                             <i class="fas fa-calendar-check mr-1"></i> Absensi
+                        </button>
+                        <button id="download-excel-btn" onclick="downloadExcel()" class="bg-emerald-500/70 hover:bg-emerald-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch hidden">
+                            <i class="fas fa-file-excel mr-1"></i> Download Excel
                         </button>
                         <button onclick="logout()" class="bg-red-500/70 hover:bg-red-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch">
                             <i class="fas fa-sign-out-alt mr-1"></i> Logout
@@ -295,7 +304,7 @@
         </div>
     </div>
 
-    <!-- Floating Tombol Tambah Transaksi -->
+    <!-- Floating Tombol Tambah Transaksi (HANYA UNTUK SUPER ADMIN) -->
     <div id="floating-btn-container" class="floating-btn hidden">
         <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg btn-touch">
             <i class="fas fa-plus text-base"></i>
@@ -429,6 +438,16 @@
             return dateTimeStr;
         }
 
+        function formatFullDate(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            if (dateTimeStr.includes(' ')) {
+                const [date, time] = dateTimeStr.split(' ');
+                const [year, month, day] = date.split('-');
+                return `${day}/${month}/${year} ${time.slice(0,5)}`;
+            }
+            return dateTimeStr;
+        }
+
         function getTodayDate() {
             const now = new Date();
             const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
@@ -506,6 +525,75 @@
             }
         }
 
+        // ==================== DOWNLOAD EXCEL ====================
+        function downloadExcel() {
+            if (!isAdmin) {
+                showToast("Hanya Super Admin yang bisa download Excel!", true);
+                return;
+            }
+            
+            if (filteredTransactions.length === 0) {
+                showToast("Tidak ada data untuk didownload!", true);
+                return;
+            }
+            
+            // Siapkan data untuk Excel
+            const headers = ['No', 'Tanggal & Waktu', 'Username', 'Nama Staff', 'Keterangan', 'Nominal'];
+            const rows = filteredTransactions.map((t, idx) => [
+                idx + 1,
+                formatFullDate(t.time),
+                t.user || '',
+                t.name || '',
+                t.note || '',
+                t.amount || 0
+            ]);
+            
+            // Hitung total omzet
+            const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+            
+            // Tambahkan baris total
+            rows.push(['', '', '', '', 'TOTAL', totalOmzet]);
+            
+            // Konversi ke CSV
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => {
+                    if (typeof cell === 'number') {
+                        return cell;
+                    }
+                    return `"${String(cell).replace(/"/g, '""')}"`;
+                }).join(','))
+                .join('\n');
+            
+            // Buat filename berdasarkan filter
+            let filename = '';
+            if (currentFilter === 'today') {
+                filename = `rekap_transaksi_${getTodayDate()}`;
+            } else if (currentFilter === 'month') {
+                filename = `rekap_transaksi_${getCurrentMonthYear()}`;
+            } else if (currentFilter === 'week') {
+                filename = `rekap_transaksi_minggu_${getStartOfWeek()}_to_${getTodayDate()}`;
+            } else if (currentFilter === 'all') {
+                filename = `rekap_transaksi_semua`;
+            } else if (currentFilter === 'custom' && customStartDate && customEndDate) {
+                filename = `rekap_transaksi_${customStartDate}_to_${customEndDate}`;
+            } else {
+                filename = `rekap_transaksi_${new Date().toISOString().slice(0,19)}`;
+            }
+            
+            // Download file
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `${filename}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast(`✅ Download ${filteredTransactions.length} transaksi sebagai CSV`);
+        }
+
         // ==================== LOGIN SYSTEM ====================
         async function handleLogin() {
             const username = document.getElementById('login-username').value.trim();
@@ -539,7 +627,7 @@
                     if (user) {
                         currentUser = { username: user.username, name: user.name, role: "user" };
                         isAdmin = false;
-                        showToast(`✅ Login sebagai ${user.name}`);
+                        showToast(`✅ Login sebagai ${user.name} (Hanya Lihat & Edit/Hapus transaksi sendiri)`);
                         await initUserApp();
                         showLoading(false);
                         return;
@@ -560,10 +648,11 @@
             document.getElementById('role-badge').classList.remove('user-badge');
             document.getElementById('role-badge').classList.remove('hidden');
             document.getElementById('header-name').innerText = currentUser.name;
-            document.getElementById('header-role').innerHTML = '<i class="fas fa-crown text-[8px] mr-1"></i> Super Admin';
+            document.getElementById('header-role').innerHTML = '<i class="fas fa-crown text-[8px] mr-1"></i> Super Admin (Akses Penuh)';
             
-            // Tampilkan tombol absensi untuk admin
+            // Tampilkan tombol untuk admin
             document.getElementById('attendance-btn-admin').classList.remove('hidden');
+            document.getElementById('download-excel-btn').classList.remove('hidden');
             
             // Tampilkan leaderboard untuk admin
             document.getElementById('leaderboard-section').classList.remove('hidden');
@@ -575,7 +664,7 @@
             document.getElementById('opt-all').style.display = '';
             document.getElementById('opt-custom').style.display = '';
             
-            // Tampilkan tombol tambah
+            // Tampilkan tombol tambah (hanya admin)
             document.getElementById('floating-btn-container').classList.remove('hidden');
             
             // Load data
@@ -594,10 +683,11 @@
             document.getElementById('role-badge').classList.remove('admin-badge');
             document.getElementById('role-badge').classList.remove('hidden');
             document.getElementById('header-name').innerText = currentUser.name;
-            document.getElementById('header-role').innerHTML = '<i class="fas fa-user text-[8px] mr-1"></i> Staff';
+            document.getElementById('header-role').innerHTML = '<i class="fas fa-user text-[8px] mr-1"></i> Staff (Hanya Lihat & Edit/Hapus sendiri)';
             
-            // Sembunyikan tombol absensi untuk user
+            // Sembunyikan tombol untuk user
             document.getElementById('attendance-btn-admin').classList.add('hidden');
+            document.getElementById('download-excel-btn').classList.add('hidden');
             
             // Sembunyikan leaderboard untuk user
             document.getElementById('leaderboard-section').classList.add('hidden');
@@ -610,8 +700,8 @@
             document.getElementById('opt-custom').style.display = 'none';
             document.getElementById('filter-period').value = 'today';
             
-            // Tampilkan tombol tambah untuk user
-            document.getElementById('floating-btn-container').classList.remove('hidden');
+            // Sembunyikan tombol tambah untuk user
+            document.getElementById('floating-btn-container').classList.add('hidden');
             
             // Load data
             await fetchUserData();
@@ -633,6 +723,7 @@
                 document.getElementById('role-badge').classList.add('hidden');
                 document.getElementById('floating-btn-container').classList.add('hidden');
                 document.getElementById('attendance-btn-admin').classList.add('hidden');
+                document.getElementById('download-excel-btn').classList.add('hidden');
                 document.getElementById('leaderboard-section').classList.add('hidden');
                 document.getElementById('login-username').value = '';
                 document.getElementById('login-pin').value = '';
@@ -687,7 +778,7 @@
         
         // ==================== FETCH DATA (USER) ====================
         async function fetchUserData() {
-            showToast("🔄 Mengambil data...");
+            showToast("🔄 Mengambil data transaksi anda...");
             
             try {
                 const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`;
@@ -698,14 +789,6 @@
                     allTransactions = trxResult.data;
                 } else {
                     allTransactions = [];
-                }
-                
-                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
-                const usersResponse = await fetch(usersUrl);
-                const usersResult = await usersResponse.json();
-                
-                if (usersResult.success && usersResult.data) {
-                    allUsers = usersResult.data;
                 }
                 
                 // User hanya bisa lihat transaksi hari ini
@@ -892,44 +975,41 @@
 
         // ==================== CRUD OPERATIONS ====================
         function showAddModal() {
+            if (!isAdmin) {
+                showToast("Anda tidak memiliki izin untuk menambah transaksi!", true);
+                return;
+            }
+            
             document.getElementById('modal-title').innerText = 'Tambah Transaksi';
             document.getElementById('edit-id').value = '';
-            document.getElementById('edit-username').value = isAdmin ? '' : currentUser.username;
-            document.getElementById('edit-name').value = isAdmin ? '' : currentUser.name;
+            document.getElementById('edit-username').value = '';
+            document.getElementById('edit-name').value = '';
             document.getElementById('edit-note').value = '';
             document.getElementById('edit-amount').value = '';
             document.getElementById('edit-time').value = getWIBForInput();
             
-            // Sembunyikan pilihan username jika user biasa
             const usernameField = document.getElementById('username-field');
             if (usernameField) {
-                if (isAdmin) {
-                    usernameField.style.display = 'block';
-                } else {
-                    usernameField.style.display = 'none';
-                }
+                usernameField.style.display = 'block';
             }
             
             document.getElementById('transaction-modal').classList.remove('hidden');
             
-            if (isAdmin) {
-                const usernameInput = document.getElementById('edit-username');
-                usernameInput.onchange = function() {
-                    const user = allUsers.find(u => u.username === this.value);
-                    if (user) {
-                        document.getElementById('edit-name').value = user.name;
-                    } else {
-                        document.getElementById('edit-name').value = '';
-                    }
-                };
-            }
+            const usernameInput = document.getElementById('edit-username');
+            usernameInput.onchange = function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('edit-name').value = user.name;
+                } else {
+                    document.getElementById('edit-name').value = '';
+                }
+            };
         }
 
         function showEditModal(id) {
             const transaction = allTransactions.find(t => t.id == id);
             if (!transaction) return;
             
-            // User biasa hanya bisa edit transaksinya sendiri
             if (!isAdmin && transaction.user !== currentUser.username) {
                 showToast("Anda hanya bisa mengedit transaksi sendiri!", true);
                 return;
@@ -977,8 +1057,13 @@
             const amount = parseInt(document.getElementById('edit-amount').value);
             let time = document.getElementById('edit-time').value;
             
-            // Jika user biasa, pakai data currentUser
-            if (!isAdmin) {
+            if (!isAdmin && !id) {
+                showToast("Anda tidak memiliki izin untuk menambah transaksi baru!", true);
+                closeModal();
+                return;
+            }
+            
+            if (!isAdmin && id) {
                 username = currentUser.username;
                 name = currentUser.name;
             }
@@ -1067,7 +1152,6 @@
         }
 
         function showDeleteModal(id, note, amount, user) {
-            // User biasa hanya bisa hapus transaksinya sendiri
             if (!isAdmin && user !== currentUser.username) {
                 showToast("Anda hanya bisa menghapus transaksi sendiri!", true);
                 return;
@@ -1123,7 +1207,6 @@
         function openDrawer(type) {
             if (!isAdmin) return;
             
-            // Buat overlay jika belum ada
             let overlay = document.getElementById('drawer-overlay');
             if (!overlay) {
                 overlay = document.createElement('div');
@@ -1323,7 +1406,6 @@
             document.getElementById('initial-loading').classList.add('hidden');
             document.getElementById('login-container').classList.remove('hidden');
             
-            // Event listener untuk search
             document.getElementById('search-user')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
