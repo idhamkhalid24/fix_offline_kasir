@@ -33,7 +33,7 @@
             100% { transform: rotate(360deg); }
         }
         .btn-touch {
-            min-height: 48px;
+            min-height: 44px;
             cursor: pointer;
         }
         .table-row:active {
@@ -101,17 +101,17 @@
         }
         .hadir { background: #dcfce7; color: #166534; }
         .tidak-hadir { background: #fee2e2; color: #991b1b; }
-        .leaderboard-card {
-            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
-        }
-        .gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .silver { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); }
-        .bronze { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
         .floating-btn {
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 50;
+        }
+        .leaderboard-item {
+            transition: all 0.2s ease;
+        }
+        .leaderboard-item:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -119,114 +119,110 @@
 
     <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
         
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 sm:mb-6 text-white">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
-                        <i class="fas fa-trophy text-white text-lg sm:text-xl"></i>
+        <!-- Header dengan Leaderboard di dalamnya -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 mb-4 text-white">
+            <!-- Baris 1: Judul & Tombol -->
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-trophy text-white text-sm sm:text-base"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-[10px] sm:text-xs text-blue-100">Leaderboard & Manajemen Transaksi</p>
+                        <h1 class="text-sm sm:text-base font-bold">Admin Panel</h1>
+                        <p class="text-[8px] sm:text-[9px] text-blue-100">Rocky Hijab</p>
                     </div>
                 </div>
-                <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
-                    <i class="fas fa-sync-alt mr-1"></i> Refresh
-                </button>
-            </div>
-        </div>
-
-        <!-- LEADERBOARD - Juara Bulan Ini -->
-        <div class="mb-6">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-base font-bold text-gray-700">
-                    <i class="fas fa-crown text-yellow-500 mr-2"></i> Leaderboard Bulan Ini
-                </h2>
-                <span id="leaderboard-month" class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full">-</span>
-            </div>
-            <div id="leaderboard-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center py-8 text-gray-400 col-span-full">Memuat leaderboard...</div>
-            </div>
-        </div>
-
-        <!-- Statistik Ringkas -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 sm:mb-6">
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-blue-500">
-                <p class="text-[10px] text-gray-400">Total Transaksi</p>
-                <p id="stat-total" class="text-xl sm:text-2xl font-bold text-gray-800">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-green-500">
-                <p class="text-[10px] text-gray-400">Total Omzet</p>
-                <p id="stat-omzet" class="text-sm sm:text-lg font-bold text-green-600 truncate">Rp 0</p>
-            </div>
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-purple-500">
-                <p class="text-[10px] text-gray-400">Jumlah User</p>
-                <p id="stat-users" class="text-xl sm:text-2xl font-bold text-purple-600">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-orange-500">
-                <p class="text-[10px] text-gray-400">Top Omzet Bulan Ini</p>
-                <p id="stat-top-omzet" class="text-sm sm:text-lg font-bold text-orange-600 truncate">Rp 0</p>
-            </div>
-        </div>
-
-        <!-- Filter Bar -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4">
-            <div class="space-y-3">
                 <div class="flex gap-2">
-                    <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-3 py-2 border rounded-lg text-sm bg-white btn-touch">
-                        <option value="today">📅 Hari Ini</option>
-                        <option value="yesterday">📆 Kemarin</option>
-                        <option value="week">📊 Minggu Ini</option>
-                        <option value="month" selected>📈 Bulan Ini</option>
-                        <option value="all">🌐 Semua Waktu</option>
-                        <option value="custom">🎯 Custom Range</option>
-                    </select>
-                </div>
-                
-                <div id="date-range-container" class="hidden">
-                    <div class="flex gap-2">
-                        <input type="date" id="date-start" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <span class="self-center text-gray-400">-</span>
-                        <input type="date" id="date-end" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-4 rounded-lg text-sm btn-touch">Apply</button>
-                    </div>
-                </div>
-                
-                <div class="flex gap-2">
-                    <div class="flex-1">
-                        <input type="text" id="search-user" placeholder="Cari username..." class="w-full px-3 py-2 border rounded-lg text-sm">
-                    </div>
-                    <div class="flex-1">
-                        <input type="text" id="search-note" placeholder="Cari keterangan..." class="w-full px-3 py-2 border rounded-lg text-sm">
-                    </div>
-                    <button onclick="applySearch()" class="bg-blue-600 text-white px-4 rounded-lg text-sm btn-touch">
-                        <i class="fas fa-search"></i>
+                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition btn-touch">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                    <button onclick="openDrawer('attendance')" class="bg-green-500/70 hover:bg-green-500 active:bg-green-600 px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition btn-touch">
+                        <i class="fas fa-calendar-check mr-1"></i> Absensi
                     </button>
                 </div>
+            </div>
+            
+            <!-- Baris 2: Leaderboard 3 Besar (compact) -->
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+                <div class="flex items-center justify-between mb-1 px-1">
+                    <span class="text-[8px] text-yellow-200 font-semibold">
+                        <i class="fas fa-crown text-[10px] mr-1"></i> LEADERBOARD BULAN INI
+                    </span>
+                    <span id="leaderboard-month" class="text-[8px] text-blue-100">-</span>
+                </div>
+                <div id="leaderboard-container" class="flex justify-between gap-1">
+                    <div class="text-center py-1 text-[8px] text-white/70 flex-1">Memuat...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistik Ringkas (diperkecil) -->
+        <div class="grid grid-cols-4 gap-2 mb-4">
+            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                <p class="text-[8px] text-gray-400">Transaksi</p>
+                <p id="stat-total" class="text-sm font-bold text-gray-800">0</p>
+            </div>
+            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                <p class="text-[8px] text-gray-400">Omzet</p>
+                <p id="stat-omzet" class="text-[10px] font-bold text-green-600 truncate">Rp 0</p>
+            </div>
+            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                <p class="text-[8px] text-gray-400">Staff</p>
+                <p id="stat-users" class="text-sm font-bold text-purple-600">0</p>
+            </div>
+            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                <p class="text-[8px] text-gray-400">Top Omzet</p>
+                <p id="stat-top-omzet" class="text-[10px] font-bold text-orange-600 truncate">Rp 0</p>
+            </div>
+        </div>
+
+        <!-- Filter Bar (diperkecil) -->
+        <div class="bg-white rounded-xl shadow-sm p-2 mb-4">
+            <div class="flex flex-wrap gap-2">
+                <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-2 py-1.5 border rounded-lg text-xs bg-white btn-touch">
+                    <option value="today">📅 Hari Ini</option>
+                    <option value="yesterday">📆 Kemarin</option>
+                    <option value="week">📊 Minggu Ini</option>
+                    <option value="month" selected>📈 Bulan Ini</option>
+                    <option value="all">🌐 Semua</option>
+                    <option value="custom">🎯 Custom</option>
+                </select>
+                
+                <div id="date-range-container" class="hidden gap-2">
+                    <input type="date" id="date-start" class="px-2 py-1.5 border rounded-lg text-xs">
+                    <span class="self-center text-gray-400 text-xs">-</span>
+                    <input type="date" id="date-end" class="px-2 py-1.5 border rounded-lg text-xs">
+                    <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-2 rounded-lg text-xs btn-touch">OK</button>
+                </div>
+                
+                <input type="text" id="search-user" placeholder="Cari user..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
+                <input type="text" id="search-note" placeholder="Cari item..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
+                <button onclick="applySearch()" class="bg-blue-600 text-white px-3 rounded-lg text-xs btn-touch">
+                    <i class="fas fa-search text-[10px]"></i>
+                </button>
             </div>
         </div>
 
         <!-- Tabel Data Transaksi -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-                <table class="w-full text-sm min-w-[600px]">
+                <table class="w-full text-xs min-w-[550px]">
                     <thead class="bg-gray-50 border-b sticky-header">
                         <tr>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Keterangan</th>
-                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nominal</th>
-                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                            <th class="px-2 py-2 text-left font-medium text-gray-500">No</th>
+                            <th class="px-2 py-2 text-left font-medium text-gray-500">Tanggal</th>
+                            <th class="px-2 py-2 text-left font-medium text-gray-500">User</th>
+                            <th class="px-2 py-2 text-left font-medium text-gray-500">Nama</th>
+                            <th class="px-2 py-2 text-left font-medium text-gray-500">Keterangan</th>
+                            <th class="px-2 py-2 text-right font-medium text-gray-500">Nominal</th>
+                            <th class="px-2 py-2 text-center font-medium text-gray-500">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="data-table" class="divide-y divide-gray-100">
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-400">
-                                <div class="loading-spinner mx-auto mb-2"></div>
-                                Memuat data...
+                            <td colspan="7" class="px-3 py-6 text-center text-gray-400">
+                                <div class="loading-spinner mx-auto mb-1"></div>
+                                Memuat...
                             </td>
                         </tr>
                     </tbody>
@@ -234,12 +230,12 @@
             </div>
             
             <!-- Pagination -->
-            <div class="px-3 py-3 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
-                <span id="pagination-info">Menampilkan 0 dari 0 data</span>
-                <div class="flex gap-2 items-center">
-                    <button id="prev-page" onclick="prevPage()" class="px-3 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 btn-touch">← Prev</button>
+            <div class="px-2 py-2 border-t flex justify-between items-center text-[10px] text-gray-500">
+                <span id="pagination-info">0 data</span>
+                <div class="flex gap-1">
+                    <button id="prev-page" onclick="prevPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">←</button>
                     <span id="page-numbers" class="flex gap-1"></span>
-                    <button id="next-page" onclick="nextPage()" class="px-3 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 btn-touch">Next →</button>
+                    <button id="next-page" onclick="nextPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">→</button>
                 </div>
             </div>
         </div>
@@ -247,25 +243,25 @@
 
     <!-- Floating Tombol Tambah Transaksi -->
     <div class="floating-btn">
-        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 rounded-full shadow-lg btn-touch">
-            <i class="fas fa-plus text-xl"></i>
+        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-3 rounded-full shadow-lg btn-touch">
+            <i class="fas fa-plus text-base"></i>
         </button>
     </div>
 
     <!-- Drawer Absensi -->
     <div id="drawer-attendance" class="drawer">
         <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-gray-800">
+            <h2 class="text-base font-bold text-gray-800">
                 <i class="fas fa-calendar-check text-green-500 mr-2"></i> Rekap Absensi Staff
             </h2>
             <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
+                <i class="fas fa-times text-lg"></i>
             </button>
         </div>
         <div class="p-4">
-            <div class="mb-4 text-center">
+            <div class="mb-3 text-center">
                 <p class="text-xs text-gray-500">Periode: <span id="attendance-period" class="font-semibold">Bulan Ini</span></p>
-                <p class="text-xs text-gray-400 mt-1">Total hari kerja: <span id="total-work-days">0</span> hari</p>
+                <p class="text-[10px] text-gray-400">Total hari kerja: <span id="total-work-days">0</span> hari</p>
             </div>
             <div id="attendance-list" class="space-y-3">
                 <div class="text-center py-4 text-gray-400">Memuat data absensi...</div>
@@ -294,7 +290,7 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Keterangan / Item *</label>
-                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina, dll" class="w-full p-3 border rounded-xl mt-1 text-base">
+                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina" class="w-full p-3 border rounded-xl mt-1 text-base">
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-700">Nominal (Rp) *</label>
@@ -336,7 +332,7 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-full text-sm z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="max-width: 90vw; text-align: center;">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full text-xs z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="max-width: 90vw; text-align: center;">
         Notifikasi
     </div>
 
@@ -399,8 +395,7 @@
         function getCurrentMonthYear() {
             const now = new Date();
             const wibNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
             return `${bulan[wibNow.getMonth()]} ${wibNow.getFullYear()}`;
         }
 
@@ -455,22 +450,27 @@
         // Drawer Functions
         function openDrawer(type) {
             const overlay = document.getElementById('drawer-overlay');
+            if (!overlay) {
+                // Buat overlay jika belum ada
+                const newOverlay = document.createElement('div');
+                newOverlay.id = 'drawer-overlay';
+                newOverlay.className = 'drawer-overlay';
+                newOverlay.onclick = closeDrawer;
+                document.body.appendChild(newOverlay);
+            }
             const drawer = document.getElementById(`drawer-${type}`);
-            
             if (type === 'attendance') {
                 renderAttendanceList();
             }
-            
-            overlay.classList.add('open');
+            document.getElementById('drawer-overlay').classList.add('open');
             drawer.classList.add('open');
         }
 
         function closeDrawer() {
             const overlay = document.getElementById('drawer-overlay');
             const attendanceDrawer = document.getElementById('drawer-attendance');
-            
-            overlay.classList.remove('open');
-            attendanceDrawer.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+            if (attendanceDrawer) attendanceDrawer.classList.remove('open');
         }
 
         // ==================== FETCH DATA ====================
@@ -507,17 +507,15 @@
                     updateUserDatalist();
                 }
                 
-                console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allAttendance.length} attendance, ${allUsers.length} users`);
+                console.log(`✅ Loaded: ${allTransactions.length} transactions`);
                 applyFilters();
                 renderLeaderboard();
-                updateTotalAttendanceStat();
-                showToast(`✅ ${allTransactions.length} transaksi dimuat`);
+                showToast(`✅ ${allTransactions.length} transaksi`);
                 
             } catch (error) {
                 console.error('Error fetching:', error);
                 showToast("❌ Gagal mengambil data", true);
                 allTransactions = [];
-                allAttendance = [];
                 renderTable();
             }
         }
@@ -531,7 +529,7 @@
             }
         }
 
-        // ==================== LEADERBOARD ====================
+        // ==================== LEADERBOARD COMPACT ====================
         function getUserOmzetThisMonth(username) {
             const startOfMonth = getStartOfMonth();
             const today = getTodayDate();
@@ -543,36 +541,23 @@
                 .reduce((sum, t) => sum + (t.amount || 0), 0);
         }
 
-        function getUserTransactionCountThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allTransactions
-                .filter(t => t.user === username)
-                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
-                .filter(t => (t.time || '').slice(0, 10) <= today)
-                .length;
-        }
-
         function renderLeaderboard() {
             const container = document.getElementById('leaderboard-container');
             const monthSpan = document.getElementById('leaderboard-month');
             
             if (!container) return;
             
-            const currentMonth = getCurrentMonthYear();
-            monthSpan.innerText = currentMonth;
+            monthSpan.innerText = getCurrentMonthYear();
             
             if (allUsers.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-gray-400 col-span-full">Belum ada data user</div>';
+                container.innerHTML = '<div class="text-center py-1 text-[8px] text-white/70 flex-1">Belum ada data</div>';
                 return;
             }
             
             // Hitung omzet setiap user
             const userStats = allUsers.map(user => ({
                 ...user,
-                omzet: getUserOmzetThisMonth(user.username),
-                transaksi: getUserTransactionCountThisMonth(user.username)
+                omzet: getUserOmzetThisMonth(user.username)
             }));
             
             // Urutkan dari omzet tertinggi
@@ -581,70 +566,32 @@
             const topOmzet = userStats.length > 0 ? userStats[0].omzet : 0;
             document.getElementById('stat-top-omzet').innerHTML = `Rp ${formatRupiah(topOmzet)}`;
             
-            // Ambil 3 teratas untuk podium
+            // Ambil 3 teratas
             const top3 = userStats.slice(0, 3);
-            const others = userStats.slice(3);
             
-            let podiumHtml = '';
+            let html = '';
+            const medals = ['🥇', '🥈', '🥉'];
+            const bgColors = ['bg-yellow-500/30', 'bg-gray-400/30', 'bg-orange-600/30'];
             
-            // Tampilkan 3 teratas dengan style berbeda
             top3.forEach((user, index) => {
-                let medalClass = '';
-                let medalIcon = '';
-                let medalColor = '';
-                
-                if (index === 0) {
-                    medalClass = 'gold';
-                    medalIcon = '<i class="fas fa-crown text-3xl mb-1"></i>';
-                    medalColor = 'text-yellow-500';
-                } else if (index === 1) {
-                    medalClass = 'silver';
-                    medalIcon = '<i class="fas fa-medal text-3xl mb-1"></i>';
-                    medalColor = 'text-gray-400';
-                } else {
-                    medalClass = 'bronze';
-                    medalIcon = '<i class="fas fa-medal text-3xl mb-1"></i>';
-                    medalColor = 'text-orange-600';
-                }
-                
-                podiumHtml += `
-                    <div class="${medalClass} rounded-2xl p-4 text-white text-center shadow-lg transform hover:scale-105 transition">
-                        ${medalIcon}
-                        <h3 class="font-bold text-lg mt-1">${escapeHtml(user.name)}</h3>
-                        <p class="text-xs opacity-80">@${escapeHtml(user.username)}</p>
-                        <div class="mt-3 bg-white/20 rounded-xl p-2">
-                            <p class="text-2xl font-black">Rp ${formatRupiah(user.omzet)}</p>
-                            <p class="text-[10px] opacity-80">${user.transaksi} transaksi</p>
-                        </div>
-                        <div class="mt-2 text-xs">
-                            ${index === 0 ? '🏆 JUARA 1 🏆' : (index === 1 ? '🥈 Juara 2' : '🥉 Juara 3')}
-                        </div>
+                html += `
+                    <div class="leaderboard-item flex-1 text-center ${bgColors[index]} rounded-lg p-1">
+                        <div class="text-xs">${medals[index]}</div>
+                        <div class="text-[9px] font-bold truncate">${escapeHtml(user.name.split(' ')[0])}</div>
+                        <div class="text-[8px] text-yellow-200">Rp ${formatRupiah(Math.floor(user.omzet / 1000))}K</div>
                     </div>
                 `;
             });
             
-            // Tampilkan lainnya dalam grid kecil
-            let othersHtml = '';
-            if (others.length > 0) {
-                othersHtml = `
-                    <div class="col-span-full mt-4">
-                        <div class="text-center mb-2">
-                            <span class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full">Staff Lainnya</span>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            ${others.map(user => `
-                                <div class="bg-white rounded-xl p-2 text-center shadow-sm border">
-                                    <p class="font-bold text-gray-800 text-sm">${escapeHtml(user.name)}</p>
-                                    <p class="text-[10px] text-gray-400">${user.transaksi} trx</p>
-                                    <p class="text-xs font-bold text-green-600">Rp ${formatRupiah(user.omzet)}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+            // Jika kurang dari 3, tambahkan placeholder
+            while (html.split('flex-1').length - 1 < 3) {
+                html += `<div class="flex-1 text-center opacity-30 rounded-lg p-1">
+                    <div class="text-xs">❓</div>
+                    <div class="text-[8px]">-</div>
+                </div>`;
             }
             
-            container.innerHTML = podiumHtml + othersHtml;
+            container.innerHTML = html;
         }
 
         // ==================== ABSENSI ====================
@@ -658,24 +605,6 @@
                     const attDate = (a.time || '').slice(0, 10);
                     return attDate >= startOfMonth && attDate <= today;
                 });
-        }
-
-        function updateTotalAttendanceStat() {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            const currentYear = parseInt(startOfMonth.slice(0, 4));
-            const currentMonth = parseInt(startOfMonth.slice(5, 7));
-            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
-            
-            const uniqueAttendanceDates = new Set();
-            for (const att of allAttendance) {
-                const attDate = (att.time || '').slice(0, 10);
-                if (attDate >= startOfMonth && attDate <= today) {
-                    uniqueAttendanceDates.add(attDate);
-                }
-            }
-            
-            document.getElementById('stat-total-absen')?.setAttribute('data-value', uniqueAttendanceDates.size);
         }
 
         function renderAttendanceList() {
@@ -716,30 +645,30 @@
                 const statusBg = user.persentase >= 80 ? 'bg-green-50' : (user.persentase >= 50 ? 'bg-yellow-50' : 'bg-red-50');
                 
                 return `
-                    <div class="bg-white rounded-xl p-4 shadow-sm border ${statusBg}">
-                        <div class="flex justify-between items-start mb-3">
+                    <div class="bg-white rounded-xl p-3 shadow-sm border ${statusBg}">
+                        <div class="flex justify-between items-start mb-2">
                             <div>
-                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
-                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
+                                <h3 class="font-bold text-gray-800 text-sm">${escapeHtml(user.name)}</h3>
+                                <p class="text-[9px] text-gray-400">@${escapeHtml(user.username)}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-2xl font-bold ${statusColor}">${user.persentase}%</p>
-                                <p class="text-[9px] text-gray-400">${user.hadirCount}/${totalWorkDays} hari</p>
+                                <p class="text-lg font-bold ${statusColor}">${user.persentase}%</p>
+                                <p class="text-[8px] text-gray-400">${user.hadirCount}/${totalWorkDays}</p>
                             </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: ${user.persentase}%"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: ${user.persentase}%"></div>
                         </div>
-                        <div class="flex flex-wrap gap-1 mt-2">
+                        <div class="flex flex-wrap gap-1">
                             ${user.attendanceRecords.length > 0 ? 
-                                user.attendanceRecords.map(att => `
-                                    <span class="attendance-badge hadir">
-                                        <i class="fas fa-check-circle text-[8px]"></i>
+                                user.attendanceRecords.slice(0, 10).map(att => `
+                                    <span class="attendance-badge hadir text-[8px] py-0.5">
                                         ${(att.time || '').slice(5, 10)}
                                     </span>
                                 `).join('') : 
-                                '<span class="attendance-badge tidak-hadir"><i class="fas fa-times-circle text-[8px]"></i> Belum pernah absen</span>'
+                                '<span class="text-[9px] text-gray-400">Belum absen</span>'
                             }
+                            ${user.attendanceRecords.length > 10 ? `<span class="text-[8px] text-gray-400">+${user.attendanceRecords.length - 10}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -776,7 +705,7 @@
                 document.getElementById('filter-period').value = 'custom';
                 applyFilters();
             } else {
-                showToast("Pilih tanggal awal dan akhir!", true);
+                showToast("Pilih tanggal!", true);
             }
         }
 
@@ -904,7 +833,7 @@
                 return;
             }
             if (!amount || amount <= 0) {
-                showToast("Nominal harus diisi dan lebih dari 0!", true);
+                showToast("Nominal harus diisi!", true);
                 return;
             }
             if (!note) {
@@ -918,7 +847,7 @@
                 time = getWIBTime();
             }
             
-            showLoading(true, "Menyimpan transaksi...");
+            showLoading(true, "Menyimpan...");
             
             try {
                 if (id) {
@@ -947,7 +876,7 @@
                             }
                         })
                     });
-                    showToast("✅ Transaksi berhasil diupdate!");
+                    showToast("✅ Transaksi diupdate!");
                 } else {
                     await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
@@ -964,7 +893,7 @@
                             }
                         })
                     });
-                    showToast("✅ Transaksi berhasil ditambahkan!");
+                    showToast("✅ Transaksi ditambahkan!");
                 }
                 
                 closeModal();
@@ -972,7 +901,7 @@
                 
             } catch (error) {
                 console.error('Save error:', error);
-                showToast("❌ Gagal menyimpan transaksi", true);
+                showToast("❌ Gagal menyimpan", true);
             } finally {
                 showLoading(false);
             }
@@ -992,7 +921,7 @@
         async function confirmDelete() {
             if (!pendingDeleteId) return;
             
-            showLoading(true, "Menghapus transaksi...");
+            showLoading(true, "Menghapus...");
             
             try {
                 await fetch(GAS_WEB_APP_URL, {
@@ -1005,13 +934,13 @@
                     })
                 });
                 
-                showToast("✅ Transaksi berhasil dihapus!");
+                showToast("✅ Transaksi dihapus!");
                 closeDeleteModal();
                 await fetchAllData();
                 
             } catch (error) {
                 console.error('Delete error:', error);
-                showToast("❌ Gagal menghapus transaksi", true);
+                showToast("❌ Gagal hapus", true);
             } finally {
                 showLoading(false);
             }
@@ -1030,31 +959,29 @@
             
             if (pageData.length === 0) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-400">
-                            <i class="fas fa-inbox text-3xl mb-2 block"></i>
-                            Tidak ada data transaksi
-                        </td>
-                    </tr>
+                    <tr><td colspan="7" class="px-3 py-6 text-center text-gray-400">
+                        <i class="fas fa-inbox text-2xl mb-1 block"></i>
+                        Tidak ada data
+                    </td></tr>
                 `;
             } else {
                 tbody.innerHTML = pageData.map((t, idx) => `
                     <tr class="table-row">
-                        <td class="px-3 py-3 text-xs text-gray-400">${startIdx + idx + 1}</td>
-                        <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${formatDateTime(t.time)}</td>
-                        <td class="px-3 py-3">
-                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono">${escapeHtml(t.user || '-')}</span>
+                        <td class="px-2 py-2 text-gray-400">${startIdx + idx + 1}</td>
+                        <td class="px-2 py-2 text-gray-600 whitespace-nowrap">${formatDateTime(t.time)}</td>
+                        <td class="px-2 py-2">
+                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[9px] font-mono">${escapeHtml(t.user || '-')}</span>
                         </td>
-                        <td class="px-3 py-3 text-sm">${escapeHtml(t.name || '-')}</td>
-                        <td class="px-3 py-3 text-sm max-w-[150px] truncate">${escapeHtml(t.note || '-')}</td>
-                        <td class="px-3 py-3 text-right font-bold text-green-600 whitespace-nowrap">Rp ${formatRupiah(t.amount)}</td>
-                        <td class="px-3 py-3 text-center whitespace-nowrap">
-                            <div class="flex gap-2 justify-center">
-                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg active:bg-blue-50 btn-touch">
-                                    <i class="fas fa-edit"></i>
+                        <td class="px-2 py-2">${escapeHtml(t.name || '-')}</td>
+                        <td class="px-2 py-2 max-w-[120px] truncate">${escapeHtml(t.note || '-')}</td>
+                        <td class="px-2 py-2 text-right font-bold text-green-600 whitespace-nowrap">Rp ${formatRupiah(t.amount)}</td>
+                        <td class="px-2 py-2 text-center whitespace-nowrap">
+                            <div class="flex gap-1 justify-center">
+                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 p-1 rounded active:bg-blue-50 btn-touch">
+                                    <i class="fas fa-edit text-xs"></i>
                                 </button>
-                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}')" class="text-red-500 hover:text-red-700 p-2 rounded-lg active:bg-red-50 btn-touch">
-                                    <i class="fas fa-trash-alt"></i>
+                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}')" class="text-red-500 p-1 rounded active:bg-red-50 btn-touch">
+                                    <i class="fas fa-trash-alt text-xs"></i>
                                 </button>
                             </div>
                         </td>
@@ -1063,7 +990,7 @@
             }
             
             const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
-            document.getElementById('pagination-info').innerHTML = `Menampilkan ${startIdx + 1} - ${Math.min(endIdx, filteredTransactions.length)} dari ${filteredTransactions.length} data`;
+            document.getElementById('pagination-info').innerHTML = `${startIdx + 1}-${Math.min(endIdx, filteredTransactions.length)}/${filteredTransactions.length}`;
             
             const pageNumbersDiv = document.getElementById('page-numbers');
             if (pageNumbersDiv) {
@@ -1075,7 +1002,7 @@
                     startPage = Math.max(1, endPage - maxVisible + 1);
                 }
                 for (let i = startPage; i <= endPage; i++) {
-                    pageHtml += `<button onclick="goToPage(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'} btn-touch">${i}</button>`;
+                    pageHtml += `<button onclick="goToPage(${i})" class="px-2 py-0.5 rounded text-xs ${i === currentPage ? 'bg-blue-600 text-white' : 'border'}">${i}</button>`;
                 }
                 pageNumbersDiv.innerHTML = pageHtml;
             }
@@ -1126,21 +1053,6 @@
             document.getElementById('search-note').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
-            
-            // Tambahkan tombol absensi di header (opsional)
-            const headerDiv = document.querySelector('.bg-gradient-to-r');
-            if (headerDiv && !document.getElementById('attendance-btn')) {
-                const attBtn = document.createElement('button');
-                attBtn.id = 'attendance-btn';
-                attBtn.innerHTML = '<i class="fas fa-calendar-check mr-1"></i> Absensi';
-                attBtn.className = 'bg-green-500/80 hover:bg-green-500 active:bg-green-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch';
-                attBtn.onclick = () => openDrawer('attendance');
-                
-                const buttonContainer = headerDiv.querySelector('.flex.gap-2');
-                if (buttonContainer) {
-                    buttonContainer.appendChild(attBtn);
-                }
-            }
         }
         
         init();
