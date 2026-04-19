@@ -90,6 +90,27 @@
             opacity: 1;
             visibility: visible;
         }
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+        }
+        .role-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 50;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            color: white;
+            font-weight: 500;
+        }
+        .admin-badge { background: rgba(220, 38, 38, 0.8); }
+        .user-badge { background: rgba(37, 99, 235, 0.8); }
         .attendance-badge {
             display: inline-flex;
             align-items: center;
@@ -101,154 +122,187 @@
         }
         .hadir { background: #dcfce7; color: #166534; }
         .tidak-hadir { background: #fee2e2; color: #991b1b; }
-        .floating-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 50;
-        }
         .leaderboard-item {
             transition: all 0.2s ease;
-        }
-        .leaderboard-item:active {
-            transform: scale(0.98);
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
+    <!-- Role Badge -->
+    <div id="role-badge" class="role-badge hidden"></div>
+
+    <div id="app-container" class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
         
-        <!-- Header dengan Leaderboard di dalamnya -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 mb-4 text-white">
-            <!-- Baris 1: Judul & Tombol -->
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-trophy text-white text-sm sm:text-base"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-sm sm:text-base font-bold">Admin Panel</h1>
-                        <p class="text-[8px] sm:text-[9px] text-blue-100">Rocky Hijab</p>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition btn-touch">
-                        <i class="fas fa-sync-alt mr-1"></i> Refresh
-                    </button>
-                    <button onclick="openDrawer('attendance')" class="bg-green-500/70 hover:bg-green-500 active:bg-green-600 px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition btn-touch">
-                        <i class="fas fa-calendar-check mr-1"></i> Absensi
-                    </button>
-                </div>
+        <!-- Loading Awal -->
+        <div id="initial-loading" class="flex justify-center items-center min-h-screen">
+            <div class="text-center">
+                <div class="loading-spinner mx-auto mb-3"></div>
+                <p class="text-sm text-gray-500">Memuat aplikasi...</p>
             </div>
-            
-            <!-- Baris 2: Leaderboard 3 Besar (compact) -->
-            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-                <div class="flex items-center justify-between mb-1 px-1">
-                    <span class="text-[8px] text-yellow-200 font-semibold">
-                        <i class="fas fa-crown text-[10px] mr-1"></i> LEADERBOARD BULAN INI
-                    </span>
-                    <span id="leaderboard-month" class="text-[8px] text-blue-100">-</span>
-                </div>
-                <div id="leaderboard-container" class="flex justify-between gap-1">
-                    <div class="text-center py-1 text-[8px] text-white/70 flex-1">Memuat...</div>
+        </div>
+
+        <!-- Form Login -->
+        <div id="login-container" class="hidden">
+            <div class="flex justify-center items-center min-h-screen">
+                <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-store text-white text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-800">Rocky Hijab</h2>
+                        <p class="text-xs text-gray-500">Admin Panel</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="login-username" placeholder="Masukkan username" class="w-full p-3 border rounded-xl mt-1 text-base">
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">PIN</label>
+                            <input type="password" id="login-pin" placeholder="Masukkan PIN" class="w-full p-3 border rounded-xl mt-1 text-base">
+                        </div>
+                        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold btn-touch">Login</button>
+                    </div>
+                    <p class="text-center text-xs text-gray-400 mt-4">
+                        🔐 <strong>Super Admin:</strong> Hubungi admin ganteng<br>
+                        👤 <strong>User Staff:</strong> Login dengan username & PIN terdaftar
+                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- Statistik Ringkas (diperkecil) -->
-        <div class="grid grid-cols-4 gap-2 mb-4">
-            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                <p class="text-[8px] text-gray-400">Transaksi</p>
-                <p id="stat-total" class="text-sm font-bold text-gray-800">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                <p class="text-[8px] text-gray-400">Omzet</p>
-                <p id="stat-omzet" class="text-[10px] font-bold text-green-600 truncate">Rp 0</p>
-            </div>
-            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                <p class="text-[8px] text-gray-400">Staff</p>
-                <p id="stat-users" class="text-sm font-bold text-purple-600">0</p>
-            </div>
-            <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                <p class="text-[8px] text-gray-400">Top Omzet</p>
-                <p id="stat-top-omzet" class="text-[10px] font-bold text-orange-600 truncate">Rp 0</p>
-            </div>
-        </div>
-
-        <!-- Filter Bar (diperkecil) -->
-        <div class="bg-white rounded-xl shadow-sm p-2 mb-4">
-            <div class="flex flex-wrap gap-2">
-                <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-2 py-1.5 border rounded-lg text-xs bg-white btn-touch">
-                    <option value="today">📅 Hari Ini</option>
-                    <option value="yesterday">📆 Kemarin</option>
-                    <option value="week">📊 Minggu Ini</option>
-                    <option value="month" selected>📈 Bulan Ini</option>
-                    <option value="all">🌐 Semua</option>
-                    <option value="custom">🎯 Custom</option>
-                </select>
-                
-                <div id="date-range-container" class="hidden gap-2">
-                    <input type="date" id="date-start" class="px-2 py-1.5 border rounded-lg text-xs">
-                    <span class="self-center text-gray-400 text-xs">-</span>
-                    <input type="date" id="date-end" class="px-2 py-1.5 border rounded-lg text-xs">
-                    <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-2 rounded-lg text-xs btn-touch">OK</button>
+        <!-- Konten Utama (setelah login) -->
+        <div id="main-content" class="hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 mb-4 text-white">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-shield text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-sm font-bold" id="header-name">Admin Panel</h1>
+                            <p class="text-[8px] text-blue-100" id="header-role">-</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh
+                        </button>
+                        <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="bg-green-500/70 hover:bg-green-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch hidden">
+                            <i class="fas fa-calendar-check mr-1"></i> Absensi
+                        </button>
+                        <button onclick="logout()" class="bg-red-500/70 hover:bg-red-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </button>
+                    </div>
                 </div>
                 
-                <input type="text" id="search-user" placeholder="Cari user..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
-                <input type="text" id="search-note" placeholder="Cari item..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
-                <button onclick="applySearch()" class="bg-blue-600 text-white px-3 rounded-lg text-xs btn-touch">
-                    <i class="fas fa-search text-[10px]"></i>
-                </button>
+                <!-- Leaderboard (hanya untuk Super Admin) -->
+                <div id="leaderboard-section" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm hidden">
+                    <div class="flex items-center justify-between mb-1 px-1">
+                        <span class="text-[8px] text-yellow-200 font-semibold">
+                            <i class="fas fa-crown text-[10px] mr-1"></i> LEADERBOARD BULAN INI
+                        </span>
+                        <span id="leaderboard-month" class="text-[8px] text-blue-100">-</span>
+                    </div>
+                    <div id="leaderboard-container" class="flex justify-between gap-1">
+                        <div class="text-center py-1 text-[8px] text-white/70 flex-1">Memuat...</div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Tabel Data Transaksi -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-                <table class="w-full text-xs min-w-[550px]">
-                    <thead class="bg-gray-50 border-b sticky-header">
-                        <tr>
-                            <th class="px-2 py-2 text-left font-medium text-gray-500">No</th>
-                            <th class="px-2 py-2 text-left font-medium text-gray-500">Tanggal</th>
-                            <th class="px-2 py-2 text-left font-medium text-gray-500">User</th>
-                            <th class="px-2 py-2 text-left font-medium text-gray-500">Nama</th>
-                            <th class="px-2 py-2 text-left font-medium text-gray-500">Keterangan</th>
-                            <th class="px-2 py-2 text-right font-medium text-gray-500">Nominal</th>
-                            <th class="px-2 py-2 text-center font-medium text-gray-500">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table" class="divide-y divide-gray-100">
-                        <tr>
-                            <td colspan="7" class="px-3 py-6 text-center text-gray-400">
-                                <div class="loading-spinner mx-auto mb-1"></div>
-                                Memuat...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Statistik Ringkas -->
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                    <p class="text-[8px] text-gray-400">Transaksi</p>
+                    <p id="stat-total" class="text-sm font-bold text-gray-800">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                    <p class="text-[8px] text-gray-400">Omzet</p>
+                    <p id="stat-omzet" class="text-[10px] font-bold text-green-600 truncate">Rp 0</p>
+                </div>
+                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
+                    <p class="text-[8px] text-gray-400">User</p>
+                    <p id="stat-users" class="text-sm font-bold text-purple-600">0</p>
+                </div>
             </div>
-            
-            <!-- Pagination -->
-            <div class="px-2 py-2 border-t flex justify-between items-center text-[10px] text-gray-500">
-                <span id="pagination-info">0 data</span>
-                <div class="flex gap-1">
-                    <button id="prev-page" onclick="prevPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">←</button>
-                    <span id="page-numbers" class="flex gap-1"></span>
-                    <button id="next-page" onclick="nextPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">→</button>
+
+            <!-- Filter Bar -->
+            <div id="filter-section" class="bg-white rounded-xl shadow-sm p-2 mb-4">
+                <div class="flex flex-wrap gap-2">
+                    <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-2 py-1.5 border rounded-lg text-xs bg-white btn-touch">
+                        <option value="today" selected>📅 Hari Ini</option>
+                        <option value="yesterday" id="opt-yesterday">📆 Kemarin</option>
+                        <option value="week" id="opt-week">📊 Minggu Ini</option>
+                        <option value="month" id="opt-month">📈 Bulan Ini</option>
+                        <option value="all" id="opt-all">🌐 Semua</option>
+                        <option value="custom" id="opt-custom">🎯 Custom</option>
+                    </select>
+                    
+                    <div id="date-range-container" class="hidden gap-2">
+                        <input type="date" id="date-start" class="px-2 py-1.5 border rounded-lg text-xs">
+                        <span class="self-center text-gray-400 text-xs">-</span>
+                        <input type="date" id="date-end" class="px-2 py-1.5 border rounded-lg text-xs">
+                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-2 rounded-lg text-xs btn-touch">OK</button>
+                    </div>
+                    
+                    <input type="text" id="search-user" placeholder="Cari user..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
+                    <input type="text" id="search-note" placeholder="Cari item..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
+                    <button onclick="applySearch()" class="bg-blue-600 text-white px-3 rounded-lg text-xs btn-touch">
+                        <i class="fas fa-search text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Data Transaksi -->
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
+                    <table class="w-full text-xs min-w-[550px]">
+                        <thead class="bg-gray-50 border-b sticky-header">
+                            <tr>
+                                <th class="px-2 py-2 text-left font-medium text-gray-500">No</th>
+                                <th class="px-2 py-2 text-left font-medium text-gray-500">Tanggal</th>
+                                <th class="px-2 py-2 text-left font-medium text-gray-500">User</th>
+                                <th class="px-2 py-2 text-left font-medium text-gray-500">Nama</th>
+                                <th class="px-2 py-2 text-left font-medium text-gray-500">Keterangan</th>
+                                <th class="px-2 py-2 text-right font-medium text-gray-500">Nominal</th>
+                                <th class="px-2 py-2 text-center font-medium text-gray-500">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table" class="divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="7" class="px-3 py-6 text-center text-gray-400">
+                                    <div class="loading-spinner mx-auto mb-1"></div>
+                                    Memuat...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="px-2 py-2 border-t flex justify-between items-center text-[10px] text-gray-500">
+                    <span id="pagination-info">0 data</span>
+                    <div class="flex gap-1">
+                        <button id="prev-page" onclick="prevPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">←</button>
+                        <span id="page-numbers" class="flex gap-1"></span>
+                        <button id="next-page" onclick="nextPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">→</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Floating Tombol Tambah Transaksi -->
-    <div class="floating-btn">
-        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-3 rounded-full shadow-lg btn-touch">
+    <div id="floating-btn-container" class="floating-btn hidden">
+        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg btn-touch">
             <i class="fas fa-plus text-base"></i>
         </button>
     </div>
 
-    <!-- Drawer Absensi -->
+    <!-- Drawer Absensi (hanya untuk Super Admin) -->
     <div id="drawer-attendance" class="drawer">
         <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
             <h2 class="text-base font-bold text-gray-800">
@@ -279,7 +333,7 @@
                 </button>
             </div>
             <div class="space-y-4">
-                <div>
+                <div id="username-field">
                     <label class="text-sm font-medium text-gray-700">Username Staff *</label>
                     <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="w-full p-3 border rounded-xl mt-1 text-base" autocomplete="off">
                     <datalist id="user-list"></datalist>
@@ -340,6 +394,9 @@
         // ==================== KONFIGURASI ====================
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwruPxgynIUQV_kpe57S6LwcEFWdcJaDbiY8SEg7z9XuZ5GVrYFZL8PatkDj1SMZ05x/exec";
         
+        // Super Admin credentials
+        const SUPER_ADMIN = { username: "admin", pin: "170845" };
+        
         // State
         let allTransactions = [];
         let filteredTransactions = [];
@@ -347,12 +404,14 @@
         let allAttendance = [];
         let currentPage = 1;
         let rowsPerPage = 15;
-        let currentFilter = 'month';
+        let currentFilter = 'today';
         let customStartDate = null;
         let customEndDate = null;
         let searchUsername = '';
         let searchNote = '';
         let pendingDeleteId = null;
+        let currentUser = null;
+        let isAdmin = false;
 
         // Helper Functions
         function formatRupiah(angka) {
@@ -447,33 +506,140 @@
             }
         }
 
-        // Drawer Functions
-        function openDrawer(type) {
-            const overlay = document.getElementById('drawer-overlay');
-            if (!overlay) {
-                // Buat overlay jika belum ada
-                const newOverlay = document.createElement('div');
-                newOverlay.id = 'drawer-overlay';
-                newOverlay.className = 'drawer-overlay';
-                newOverlay.onclick = closeDrawer;
-                document.body.appendChild(newOverlay);
+        // ==================== LOGIN SYSTEM ====================
+        async function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const pin = document.getElementById('login-pin').value.trim();
+            
+            if (!username || !pin) {
+                showToast("Isi username dan PIN!", true);
+                return;
             }
-            const drawer = document.getElementById(`drawer-${type}`);
-            if (type === 'attendance') {
-                renderAttendanceList();
+            
+            showLoading(true, "Memverifikasi...");
+            
+            // Cek Super Admin
+            if (username === SUPER_ADMIN.username && pin === SUPER_ADMIN.pin) {
+                currentUser = { username: "admin", name: "Super Admin", role: "admin" };
+                isAdmin = true;
+                showToast("✅ Login sebagai Super Admin");
+                await initAdminApp();
+                showLoading(false);
+                return;
             }
-            document.getElementById('drawer-overlay').classList.add('open');
-            drawer.classList.add('open');
+            
+            // Cek User dari sheet
+            try {
+                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
+                const response = await fetch(usersUrl);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const user = result.data.find(u => u.username === username && u.pin === pin);
+                    if (user) {
+                        currentUser = { username: user.username, name: user.name, role: "user" };
+                        isAdmin = false;
+                        showToast(`✅ Login sebagai ${user.name}`);
+                        await initUserApp();
+                        showLoading(false);
+                        return;
+                    }
+                }
+                showToast("Username atau PIN salah!", true);
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast("Gagal login, coba lagi!", true);
+            }
+            showLoading(false);
+        }
+        
+        async function initAdminApp() {
+            isAdmin = true;
+            document.getElementById('role-badge').innerHTML = '<i class="fas fa-crown mr-1"></i> SUPER ADMIN';
+            document.getElementById('role-badge').classList.add('admin-badge');
+            document.getElementById('role-badge').classList.remove('user-badge');
+            document.getElementById('role-badge').classList.remove('hidden');
+            document.getElementById('header-name').innerText = currentUser.name;
+            document.getElementById('header-role').innerHTML = '<i class="fas fa-crown text-[8px] mr-1"></i> Super Admin';
+            
+            // Tampilkan tombol absensi untuk admin
+            document.getElementById('attendance-btn-admin').classList.remove('hidden');
+            
+            // Tampilkan leaderboard untuk admin
+            document.getElementById('leaderboard-section').classList.remove('hidden');
+            
+            // Tampilkan semua opsi filter
+            document.getElementById('opt-yesterday').style.display = '';
+            document.getElementById('opt-week').style.display = '';
+            document.getElementById('opt-month').style.display = '';
+            document.getElementById('opt-all').style.display = '';
+            document.getElementById('opt-custom').style.display = '';
+            
+            // Tampilkan tombol tambah
+            document.getElementById('floating-btn-container').classList.remove('hidden');
+            
+            // Load data
+            await fetchAllData();
+            
+            // Tampilkan konten
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('initial-loading').classList.add('hidden');
+        }
+        
+        async function initUserApp() {
+            isAdmin = false;
+            document.getElementById('role-badge').innerHTML = '<i class="fas fa-user mr-1"></i> ' + currentUser.name;
+            document.getElementById('role-badge').classList.add('user-badge');
+            document.getElementById('role-badge').classList.remove('admin-badge');
+            document.getElementById('role-badge').classList.remove('hidden');
+            document.getElementById('header-name').innerText = currentUser.name;
+            document.getElementById('header-role').innerHTML = '<i class="fas fa-user text-[8px] mr-1"></i> Staff';
+            
+            // Sembunyikan tombol absensi untuk user
+            document.getElementById('attendance-btn-admin').classList.add('hidden');
+            
+            // Sembunyikan leaderboard untuk user
+            document.getElementById('leaderboard-section').classList.add('hidden');
+            
+            // Sembunyikan opsi filter selain Hari Ini
+            document.getElementById('opt-yesterday').style.display = 'none';
+            document.getElementById('opt-week').style.display = 'none';
+            document.getElementById('opt-month').style.display = 'none';
+            document.getElementById('opt-all').style.display = 'none';
+            document.getElementById('opt-custom').style.display = 'none';
+            document.getElementById('filter-period').value = 'today';
+            
+            // Tampilkan tombol tambah untuk user
+            document.getElementById('floating-btn-container').classList.remove('hidden');
+            
+            // Load data
+            await fetchUserData();
+            
+            // Tampilkan konten
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('initial-loading').classList.add('hidden');
+        }
+        
+        function logout() {
+            if (confirm("Yakin ingin logout?")) {
+                currentUser = null;
+                isAdmin = false;
+                allTransactions = [];
+                filteredTransactions = [];
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('main-content').classList.add('hidden');
+                document.getElementById('role-badge').classList.add('hidden');
+                document.getElementById('floating-btn-container').classList.add('hidden');
+                document.getElementById('attendance-btn-admin').classList.add('hidden');
+                document.getElementById('leaderboard-section').classList.add('hidden');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-pin').value = '';
+            }
         }
 
-        function closeDrawer() {
-            const overlay = document.getElementById('drawer-overlay');
-            const attendanceDrawer = document.getElementById('drawer-attendance');
-            if (overlay) overlay.classList.remove('open');
-            if (attendanceDrawer) attendanceDrawer.classList.remove('open');
-        }
-
-        // ==================== FETCH DATA ====================
+        // ==================== FETCH DATA (ADMIN) ====================
         async function fetchAllData() {
             showToast("🔄 Mengambil data...");
             
@@ -507,7 +673,6 @@
                     updateUserDatalist();
                 }
                 
-                console.log(`✅ Loaded: ${allTransactions.length} transactions`);
                 applyFilters();
                 renderLeaderboard();
                 showToast(`✅ ${allTransactions.length} transaksi`);
@@ -519,17 +684,54 @@
                 renderTable();
             }
         }
+        
+        // ==================== FETCH DATA (USER) ====================
+        async function fetchUserData() {
+            showToast("🔄 Mengambil data...");
+            
+            try {
+                const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`;
+                const trxResponse = await fetch(trxUrl);
+                const trxResult = await trxResponse.json();
+                
+                if (trxResult.success && trxResult.data) {
+                    allTransactions = trxResult.data;
+                } else {
+                    allTransactions = [];
+                }
+                
+                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
+                const usersResponse = await fetch(usersUrl);
+                const usersResult = await usersResponse.json();
+                
+                if (usersResult.success && usersResult.data) {
+                    allUsers = usersResult.data;
+                }
+                
+                // User hanya bisa lihat transaksi hari ini
+                currentFilter = 'today';
+                document.getElementById('filter-period').value = 'today';
+                applyFilters();
+                showToast(`✅ ${filteredTransactions.length} transaksi hari ini`);
+                
+            } catch (error) {
+                console.error('Error fetching:', error);
+                showToast("❌ Gagal mengambil data", true);
+                allTransactions = [];
+                renderTable();
+            }
+        }
 
         function updateUserDatalist() {
             const datalist = document.getElementById('user-list');
-            if (datalist) {
+            if (datalist && isAdmin) {
                 datalist.innerHTML = allUsers.map(u => 
                     `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`
                 ).join('');
             }
         }
 
-        // ==================== LEADERBOARD COMPACT ====================
+        // ==================== LEADERBOARD (ADMIN ONLY) ====================
         function getUserOmzetThisMonth(username) {
             const startOfMonth = getStartOfMonth();
             const today = getTodayDate();
@@ -542,6 +744,8 @@
         }
 
         function renderLeaderboard() {
+            if (!isAdmin) return;
+            
             const container = document.getElementById('leaderboard-container');
             const monthSpan = document.getElementById('leaderboard-month');
             
@@ -554,47 +758,394 @@
                 return;
             }
             
-            // Hitung omzet setiap user
             const userStats = allUsers.map(user => ({
                 ...user,
                 omzet: getUserOmzetThisMonth(user.username)
             }));
             
-            // Urutkan dari omzet tertinggi
             userStats.sort((a, b) => b.omzet - a.omzet);
-            
-            const topOmzet = userStats.length > 0 ? userStats[0].omzet : 0;
-            document.getElementById('stat-top-omzet').innerHTML = `Rp ${formatRupiah(topOmzet)}`;
-            
-            // Ambil 3 teratas
             const top3 = userStats.slice(0, 3);
             
             let html = '';
             const medals = ['🥇', '🥈', '🥉'];
             const bgColors = ['bg-yellow-500/30', 'bg-gray-400/30', 'bg-orange-600/30'];
             
-            top3.forEach((user, index) => {
-                html += `
-                    <div class="leaderboard-item flex-1 text-center ${bgColors[index]} rounded-lg p-1">
-                        <div class="text-xs">${medals[index]}</div>
-                        <div class="text-[9px] font-bold truncate">${escapeHtml(user.name.split(' ')[0])}</div>
-                        <div class="text-[8px] text-yellow-200">Rp ${formatRupiah(Math.floor(user.omzet / 1000))}K</div>
-                    </div>
-                `;
-            });
-            
-            // Jika kurang dari 3, tambahkan placeholder
-            while (html.split('flex-1').length - 1 < 3) {
-                html += `<div class="flex-1 text-center opacity-30 rounded-lg p-1">
-                    <div class="text-xs">❓</div>
-                    <div class="text-[8px]">-</div>
-                </div>`;
+            for (let i = 0; i < 3; i++) {
+                if (top3[i]) {
+                    html += `
+                        <div class="leaderboard-item flex-1 text-center ${bgColors[i]} rounded-lg p-1">
+                            <div class="text-xs">${medals[i]}</div>
+                            <div class="text-[9px] font-bold truncate">${escapeHtml(top3[i].name.split(' ')[0])}</div>
+                            <div class="text-[8px] text-yellow-200">Rp ${formatRupiah(Math.floor(top3[i].omzet / 1000))}K</div>
+                        </div>
+                    `;
+                } else {
+                    html += `<div class="flex-1 text-center opacity-30 rounded-lg p-1">
+                        <div class="text-xs">❓</div>
+                        <div class="text-[8px]">-</div>
+                    </div>`;
+                }
             }
             
             container.innerHTML = html;
         }
 
-        // ==================== ABSENSI ====================
+        // ==================== FILTER FUNCTIONS ====================
+        function setFilterPeriod() {
+            if (!isAdmin) return;
+            
+            const period = document.getElementById('filter-period').value;
+            currentFilter = period;
+            customStartDate = null;
+            customEndDate = null;
+            
+            const dateRangeContainer = document.getElementById('date-range-container');
+            if (period === 'custom') {
+                dateRangeContainer.classList.remove('hidden');
+                document.getElementById('date-start').value = getTodayDate();
+                document.getElementById('date-end').value = getTodayDate();
+            } else {
+                dateRangeContainer.classList.add('hidden');
+            }
+            
+            applyFilters();
+        }
+
+        function applyCustomRange() {
+            const start = document.getElementById('date-start').value;
+            const end = document.getElementById('date-end').value;
+            
+            if (start && end) {
+                customStartDate = start;
+                customEndDate = end;
+                currentFilter = 'custom';
+                document.getElementById('filter-period').value = 'custom';
+                applyFilters();
+            } else {
+                showToast("Pilih tanggal!", true);
+            }
+        }
+
+        function applySearch() {
+            searchUsername = document.getElementById('search-user').value.toLowerCase();
+            searchNote = document.getElementById('search-note').value.toLowerCase();
+            currentPage = 1;
+            applyFilters();
+        }
+
+        function applyFilters() {
+            let filtered = [...allTransactions];
+            const today = getTodayDate();
+            const startOfWeek = getStartOfWeek();
+            const startOfMonth = getStartOfMonth();
+            
+            if (currentFilter === 'today') {
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === today);
+            } 
+            else if (currentFilter === 'yesterday' && isAdmin) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().slice(0, 10);
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === yesterdayStr);
+            }
+            else if (currentFilter === 'week' && isAdmin) {
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
+            }
+            else if (currentFilter === 'month' && isAdmin) {
+                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
+            }
+            else if (currentFilter === 'all' && isAdmin) {
+                // semua data
+            }
+            else if (currentFilter === 'custom' && isAdmin && customStartDate && customEndDate) {
+                filtered = filtered.filter(t => {
+                    const tDate = (t.time || '').slice(0, 10);
+                    return tDate >= customStartDate && tDate <= customEndDate;
+                });
+            }
+            
+            if (searchUsername) {
+                filtered = filtered.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
+            }
+            
+            if (searchNote) {
+                filtered = filtered.filter(t => (t.note || '').toLowerCase().includes(searchNote));
+            }
+            
+            filtered.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+            
+            filteredTransactions = filtered;
+            updateStatistics();
+            currentPage = 1;
+            renderTable();
+        }
+
+        function updateStatistics() {
+            const total = filteredTransactions.length;
+            const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+            const uniqueUsers = new Set(filteredTransactions.map(t => t.user));
+            
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
+            document.getElementById('stat-users').innerText = isAdmin ? uniqueUsers.size : 1;
+        }
+
+        // ==================== CRUD OPERATIONS ====================
+        function showAddModal() {
+            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('edit-username').value = isAdmin ? '' : currentUser.username;
+            document.getElementById('edit-name').value = isAdmin ? '' : currentUser.name;
+            document.getElementById('edit-note').value = '';
+            document.getElementById('edit-amount').value = '';
+            document.getElementById('edit-time').value = getWIBForInput();
+            
+            // Sembunyikan pilihan username jika user biasa
+            const usernameField = document.getElementById('username-field');
+            if (usernameField) {
+                if (isAdmin) {
+                    usernameField.style.display = 'block';
+                } else {
+                    usernameField.style.display = 'none';
+                }
+            }
+            
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            if (isAdmin) {
+                const usernameInput = document.getElementById('edit-username');
+                usernameInput.onchange = function() {
+                    const user = allUsers.find(u => u.username === this.value);
+                    if (user) {
+                        document.getElementById('edit-name').value = user.name;
+                    } else {
+                        document.getElementById('edit-name').value = '';
+                    }
+                };
+            }
+        }
+
+        function showEditModal(id) {
+            const transaction = allTransactions.find(t => t.id == id);
+            if (!transaction) return;
+            
+            // User biasa hanya bisa edit transaksinya sendiri
+            if (!isAdmin && transaction.user !== currentUser.username) {
+                showToast("Anda hanya bisa mengedit transaksi sendiri!", true);
+                return;
+            }
+            
+            document.getElementById('modal-title').innerText = 'Edit Transaksi';
+            document.getElementById('edit-id').value = transaction.id;
+            document.getElementById('edit-username').value = transaction.user || '';
+            document.getElementById('edit-name').value = transaction.name || '';
+            document.getElementById('edit-note').value = transaction.note || '';
+            document.getElementById('edit-amount').value = transaction.amount || '';
+            
+            let timeValue = transaction.time || '';
+            if (timeValue && timeValue.includes(' ')) {
+                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
+            }
+            document.getElementById('edit-time').value = timeValue || getWIBForInput();
+            
+            if (isAdmin) {
+                document.getElementById('username-field').style.display = 'block';
+            } else {
+                document.getElementById('username-field').style.display = 'none';
+            }
+            
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            
+            if (isAdmin) {
+                const usernameInput = document.getElementById('edit-username');
+                usernameInput.onchange = function() {
+                    const user = allUsers.find(u => u.username === this.value);
+                    if (user) {
+                        document.getElementById('edit-name').value = user.name;
+                    } else {
+                        document.getElementById('edit-name').value = '';
+                    }
+                };
+            }
+        }
+
+        async function saveTransaction() {
+            const id = document.getElementById('edit-id').value;
+            let username = document.getElementById('edit-username').value.trim();
+            let name = document.getElementById('edit-name').value.trim();
+            const note = document.getElementById('edit-note').value.trim();
+            const amount = parseInt(document.getElementById('edit-amount').value);
+            let time = document.getElementById('edit-time').value;
+            
+            // Jika user biasa, pakai data currentUser
+            if (!isAdmin) {
+                username = currentUser.username;
+                name = currentUser.name;
+            }
+            
+            if (!username) {
+                showToast("Username harus diisi!", true);
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showToast("Nominal harus diisi!", true);
+                return;
+            }
+            if (!note) {
+                showToast("Keterangan harus diisi!", true);
+                return;
+            }
+            
+            if (time) {
+                time = time.replace('T', ' ') + ':00';
+            } else {
+                time = getWIBTime();
+            }
+            
+            showLoading(true, "Menyimpan...");
+            
+            try {
+                if (id) {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'delete_transaction',
+                            payload: { serverId: id.toString() }
+                        })
+                    });
+                    
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi diupdate!");
+                } else {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'transaction',
+                            payload: {
+                                user: username,
+                                name: name,
+                                amount: amount,
+                                note: note,
+                                time: time
+                            }
+                        })
+                    });
+                    showToast("✅ Transaksi ditambahkan!");
+                }
+                
+                closeModal();
+                if (isAdmin) {
+                    await fetchAllData();
+                } else {
+                    await fetchUserData();
+                }
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast("❌ Gagal menyimpan", true);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showDeleteModal(id, note, amount, user) {
+            // User biasa hanya bisa hapus transaksinya sendiri
+            if (!isAdmin && user !== currentUser.username) {
+                showToast("Anda hanya bisa menghapus transaksi sendiri!", true);
+                return;
+            }
+            
+            pendingDeleteId = id;
+            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        async function confirmDelete() {
+            if (!pendingDeleteId) return;
+            
+            showLoading(true, "Menghapus...");
+            
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'delete_transaction',
+                        payload: { serverId: pendingDeleteId.toString() }
+                    })
+                });
+                
+                showToast("✅ Transaksi dihapus!");
+                closeDeleteModal();
+                if (isAdmin) {
+                    await fetchAllData();
+                } else {
+                    await fetchUserData();
+                }
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast("❌ Gagal hapus", true);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('transaction-modal').classList.add('hidden');
+        }
+
+        // ==================== DRAWER ABSENSI (ADMIN ONLY) ====================
+        function openDrawer(type) {
+            if (!isAdmin) return;
+            
+            // Buat overlay jika belum ada
+            let overlay = document.getElementById('drawer-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'drawer-overlay';
+                overlay.className = 'drawer-overlay';
+                overlay.onclick = closeDrawer;
+                document.body.appendChild(overlay);
+            }
+            
+            const drawer = document.getElementById(`drawer-${type}`);
+            renderAttendanceList();
+            overlay.classList.add('open');
+            drawer.classList.add('open');
+        }
+
+        function closeDrawer() {
+            const overlay = document.getElementById('drawer-overlay');
+            const drawer = document.getElementById('drawer-attendance');
+            if (overlay) overlay.remove();
+            if (drawer) drawer.classList.remove('open');
+        }
+
         function getUserAttendanceThisMonth(username) {
             const startOfMonth = getStartOfMonth();
             const today = getTodayDate();
@@ -668,286 +1219,10 @@
                                 `).join('') : 
                                 '<span class="text-[9px] text-gray-400">Belum absen</span>'
                             }
-                            ${user.attendanceRecords.length > 10 ? `<span class="text-[8px] text-gray-400">+${user.attendanceRecords.length - 10}</span>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        // ==================== FILTER FUNCTIONS ====================
-        function setFilterPeriod() {
-            const period = document.getElementById('filter-period').value;
-            currentFilter = period;
-            customStartDate = null;
-            customEndDate = null;
-            
-            const dateRangeContainer = document.getElementById('date-range-container');
-            if (period === 'custom') {
-                dateRangeContainer.classList.remove('hidden');
-                document.getElementById('date-start').value = getTodayDate();
-                document.getElementById('date-end').value = getTodayDate();
-            } else {
-                dateRangeContainer.classList.add('hidden');
-            }
-            
-            applyFilters();
-        }
-
-        function applyCustomRange() {
-            const start = document.getElementById('date-start').value;
-            const end = document.getElementById('date-end').value;
-            
-            if (start && end) {
-                customStartDate = start;
-                customEndDate = end;
-                currentFilter = 'custom';
-                document.getElementById('filter-period').value = 'custom';
-                applyFilters();
-            } else {
-                showToast("Pilih tanggal!", true);
-            }
-        }
-
-        function applySearch() {
-            searchUsername = document.getElementById('search-user').value.toLowerCase();
-            searchNote = document.getElementById('search-note').value.toLowerCase();
-            currentPage = 1;
-            applyFilters();
-        }
-
-        function applyFilters() {
-            let filtered = [...allTransactions];
-            const today = getTodayDate();
-            const startOfWeek = getStartOfWeek();
-            const startOfMonth = getStartOfMonth();
-            
-            if (currentFilter === 'today') {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === today);
-            } 
-            else if (currentFilter === 'yesterday') {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().slice(0, 10);
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === yesterdayStr);
-            }
-            else if (currentFilter === 'week') {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
-            }
-            else if (currentFilter === 'month') {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
-            }
-            else if (currentFilter === 'custom' && customStartDate && customEndDate) {
-                filtered = filtered.filter(t => {
-                    const tDate = (t.time || '').slice(0, 10);
-                    return tDate >= customStartDate && tDate <= customEndDate;
-                });
-            }
-            
-            if (searchUsername) {
-                filtered = filtered.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
-            }
-            
-            if (searchNote) {
-                filtered = filtered.filter(t => (t.note || '').toLowerCase().includes(searchNote));
-            }
-            
-            filtered.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
-            
-            filteredTransactions = filtered;
-            updateStatistics();
-            currentPage = 1;
-            renderTable();
-        }
-
-        function updateStatistics() {
-            const total = filteredTransactions.length;
-            const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-            const uniqueUsers = new Set(filteredTransactions.map(t => t.user));
-            
-            document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
-            document.getElementById('stat-users').innerText = uniqueUsers.size;
-        }
-
-        // ==================== CRUD OPERATIONS ====================
-        function showAddModal() {
-            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('edit-username').value = '';
-            document.getElementById('edit-name').value = '';
-            document.getElementById('edit-note').value = '';
-            document.getElementById('edit-amount').value = '';
-            document.getElementById('edit-time').value = getWIBForInput();
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            const usernameInput = document.getElementById('edit-username');
-            usernameInput.onchange = function() {
-                const user = allUsers.find(u => u.username === this.value);
-                if (user) {
-                    document.getElementById('edit-name').value = user.name;
-                } else {
-                    document.getElementById('edit-name').value = '';
-                }
-            };
-        }
-
-        function showEditModal(id) {
-            const transaction = allTransactions.find(t => t.id == id);
-            if (!transaction) return;
-            
-            document.getElementById('modal-title').innerText = 'Edit Transaksi';
-            document.getElementById('edit-id').value = transaction.id;
-            document.getElementById('edit-username').value = transaction.user || '';
-            document.getElementById('edit-name').value = transaction.name || '';
-            document.getElementById('edit-note').value = transaction.note || '';
-            document.getElementById('edit-amount').value = transaction.amount || '';
-            
-            let timeValue = transaction.time || '';
-            if (timeValue && timeValue.includes(' ')) {
-                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
-            }
-            document.getElementById('edit-time').value = timeValue || getWIBForInput();
-            
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            const usernameInput = document.getElementById('edit-username');
-            usernameInput.onchange = function() {
-                const user = allUsers.find(u => u.username === this.value);
-                if (user) {
-                    document.getElementById('edit-name').value = user.name;
-                }
-            };
-        }
-
-        async function saveTransaction() {
-            const id = document.getElementById('edit-id').value;
-            const username = document.getElementById('edit-username').value.trim();
-            const name = document.getElementById('edit-name').value.trim();
-            const note = document.getElementById('edit-note').value.trim();
-            const amount = parseInt(document.getElementById('edit-amount').value);
-            let time = document.getElementById('edit-time').value;
-            
-            if (!username) {
-                showToast("Username harus diisi!", true);
-                return;
-            }
-            if (!amount || amount <= 0) {
-                showToast("Nominal harus diisi!", true);
-                return;
-            }
-            if (!note) {
-                showToast("Keterangan harus diisi!", true);
-                return;
-            }
-            
-            if (time) {
-                time = time.replace('T', ' ') + ':00';
-            } else {
-                time = getWIBTime();
-            }
-            
-            showLoading(true, "Menyimpan...");
-            
-            try {
-                if (id) {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'delete_transaction',
-                            payload: { serverId: id.toString() }
-                        })
-                    });
-                    
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi diupdate!");
-                } else {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi ditambahkan!");
-                }
-                
-                closeModal();
-                await fetchAllData();
-                
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast("❌ Gagal menyimpan", true);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function showDeleteModal(id, note, amount) {
-            pendingDeleteId = id;
-            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            pendingDeleteId = null;
-            document.getElementById('delete-modal').classList.add('hidden');
-        }
-
-        async function confirmDelete() {
-            if (!pendingDeleteId) return;
-            
-            showLoading(true, "Menghapus...");
-            
-            try {
-                await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'delete_transaction',
-                        payload: { serverId: pendingDeleteId.toString() }
-                    })
-                });
-                
-                showToast("✅ Transaksi dihapus!");
-                closeDeleteModal();
-                await fetchAllData();
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                showToast("❌ Gagal hapus", true);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('transaction-modal').classList.add('hidden');
         }
 
         // ==================== RENDER TABLE ====================
@@ -961,7 +1236,7 @@
                 tbody.innerHTML = `
                     <tr><td colspan="7" class="px-3 py-6 text-center text-gray-400">
                         <i class="fas fa-inbox text-2xl mb-1 block"></i>
-                        Tidak ada data
+                        Tidak ada data transaksi
                     </td></tr>
                 `;
             } else {
@@ -980,7 +1255,7 @@
                                 <button onclick="showEditModal('${t.id}')" class="text-blue-500 p-1 rounded active:bg-blue-50 btn-touch">
                                     <i class="fas fa-edit text-xs"></i>
                                 </button>
-                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}')" class="text-red-500 p-1 rounded active:bg-red-50 btn-touch">
+                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}', '${t.user}')" class="text-red-500 p-1 rounded active:bg-red-50 btn-touch">
                                     <i class="fas fa-trash-alt text-xs"></i>
                                 </button>
                             </div>
@@ -1044,13 +1319,15 @@
         }
 
         // ==================== INIT ====================
-        async function init() {
-            await fetchAllData();
+        function init() {
+            document.getElementById('initial-loading').classList.add('hidden');
+            document.getElementById('login-container').classList.remove('hidden');
             
-            document.getElementById('search-user').addEventListener('keypress', (e) => {
+            // Event listener untuk search
+            document.getElementById('search-user')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
-            document.getElementById('search-note').addEventListener('keypress', (e) => {
+            document.getElementById('search-note')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
         }
