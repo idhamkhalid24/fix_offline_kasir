@@ -1,1420 +1,1441 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Admin - Rocky Hijab</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Admin — Rocky Hijab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
+        /* ══════════════════════════════════════
+           THEME VARIABLES
+        ══════════════════════════════════════ */
+        :root {
+            --tr: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
+        [data-theme="light"] {
+            --bg:        #f0f2f8;
+            --bg2:       #ffffff;
+            --bg3:       #f7f8fc;
+            --surface:   rgba(0,0,0,0.04);
+            --surface-h: rgba(0,0,0,0.07);
+            --border:    rgba(0,0,0,0.07);
+            --text:      #0f1523;
+            --text-s:    #5c6478;
+            --text-g:    #9ba3b8;
+            --accent:    #3b6df0;
+            --accent-d:  rgba(59,109,240,0.1);
+            --accent-gl: rgba(59,109,240,0.2);
+            --green:     #18a96b;
+            --green-d:   rgba(24,169,107,0.1);
+            --red:       #e84545;
+            --red-d:     rgba(232,69,69,0.1);
+            --amber:     #e8960a;
+            --amber-d:   rgba(232,150,10,0.1);
+            --purple:    #7c3aed;
+            --purple-d:  rgba(124,58,237,0.1);
+            --nav:       rgba(255,255,255,0.95);
+            --shadow:    0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
+            --thead-bg:  #f7f8fc;
+            --row-h:     rgba(0,0,0,0.025);
+        }
+        [data-theme="dark"] {
+            --bg:        #090d18;
+            --bg2:       #0e1525;
+            --bg3:       #131d30;
+            --surface:   rgba(255,255,255,0.04);
+            --surface-h: rgba(255,255,255,0.07);
+            --border:    rgba(255,255,255,0.07);
+            --text:      #e8eeff;
+            --text-s:    #7a85a0;
+            --text-g:    #3a4258;
+            --accent:    #5b8fff;
+            --accent-d:  rgba(91,143,255,0.12);
+            --accent-gl: rgba(91,143,255,0.22);
+            --green:     #3fd68a;
+            --green-d:   rgba(63,214,138,0.1);
+            --red:       #ff6b6b;
+            --red-d:     rgba(255,107,107,0.1);
+            --amber:     #ffc46b;
+            --amber-d:   rgba(255,196,107,0.1);
+            --purple:    #a78bfa;
+            --purple-d:  rgba(167,139,250,0.1);
+            --nav:       rgba(9,13,24,0.95);
+            --shadow:    0 4px 24px rgba(0,0,0,0.4);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.6);
+            --thead-bg:  #0b1020;
+            --row-h:     rgba(255,255,255,0.025);
+        }
+
+        /* ══════════════════════════════════════
+           BASE
+        ══════════════════════════════════════ */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f3f4f6;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            transition: var(--tr);
             padding-bottom: env(safe-area-inset-bottom);
         }
-        .modal-backdrop {
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        -webkit-overflow-scrolling: touch;
+
+        /* ══════════════════════════════════════
+           LAYOUT - FIXED CENTERING & FAB SPACING
+        ══════════════════════════════════════ */
+        #app-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px 32px;
         }
-        .loading-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        .content-center {
+            width: 100%;
+            max-width: 1280px;
         }
-        .btn-touch {
-            min-height: 44px;
-            cursor: pointer;
-        }
-        .table-row:active {
-            background-color: #f3f4f6;
-        }
-        .sticky-header th {
+
+        /* ══════════════════════════════════════
+           TOPBAR - DIPERBAIKI
+        ══════════════════════════════════════ */
+        #topbar {
             position: sticky;
             top: 0;
-            background: white;
-            z-index: 10;
+            z-index: 40;
+            background: var(--nav);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: var(--tr);
         }
-        .overflow-x-auto {
-            -webkit-overflow-scrolling: touch;
+        .topbar-left { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            flex-shrink: 1;
+            min-width: 0;
         }
-        button, .clickable {
-            cursor: pointer;
-            touch-action: manipulation;
+        /* Logo dihapus - tidak digunakan lagi */
+        .topbar-logo {
+            display: none;
         }
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.3;
+            overflow: hidden;
         }
-        input[type=number] {
-            -moz-appearance: textfield;
+        #header-name { 
+            font-size: 14px; 
+            font-weight: 700; 
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 60;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        .drawer.open {
-            transform: translateY(0);
-        }
-        .drawer-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 59;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .drawer-overlay.open {
-            opacity: 1;
-            visibility: visible;
-        }
-        .floating-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 50;
-        }
-        .role-badge {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 50;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            color: white;
-            font-weight: 500;
-        }
-        .admin-badge { background: rgba(220, 38, 38, 0.8); }
-        .user-badge { background: rgba(37, 99, 235, 0.8); }
-        .attendance-badge {
-            display: inline-flex;
+        #header-role { 
+            font-size: 10px; 
+            color: var(--text-s); 
+            margin-top: 2px;
+            display: flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 8px;
-            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .topbar-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        /* ══════════════════════════════════════
+           ROLE BADGE
+        ══════════════════════════════════════ */
+        .role-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 100px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+        }
+        .role-admin { background: var(--red-d); color: var(--red); border: 1px solid rgba(232,69,69,0.2); }
+        .role-user  { background: var(--accent-d); color: var(--accent); border: 1px solid rgba(91,143,255,0.2); }
+
+        /* ══════════════════════════════════════
+           BUTTONS
+        ══════════════════════════════════════ */
+        .btn {
+            border: none; cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            transition: all 0.14s ease;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            letter-spacing: 0.01em;
+            min-height: 36px;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+        .btn-primary { background: var(--accent); color: white; border-radius: 10px; padding: 8px 14px; font-size: 12px; box-shadow: 0 3px 14px var(--accent-gl); }
+        .btn-ghost { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 12px; color: var(--text-s); }
+        .btn-ghost:hover { background: var(--surface-h); }
+        .btn-danger { background: var(--red-d); border: 1px solid rgba(232,69,69,0.2); border-radius: 10px; padding: 8px 14px; font-size: 12px; color: var(--red); }
+        .btn-success { background: var(--green-d); border: 1px solid rgba(24,169,107,0.2); border-radius: 10px; padding: 8px 14px; font-size: 12px; color: var(--green); }
+        .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 10px; font-size: 14px; background: var(--surface); border: 1px solid var(--border); color: var(--text-s); }
+        .btn-icon:hover { background: var(--surface-h); }
+
+        .theme-toggle {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-s); font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s;
+        }
+        .theme-toggle:active { transform: scale(0.92); }
+
+        /* FAB - DIPERBAIKI: Tidak menghalangi konten */
+        .fab {
+            position: fixed; 
+            bottom: 24px; 
+            right: 24px; 
+            z-index: 50;
+            width: 52px; 
+            height: 52px; 
+            border-radius: 16px;
+            background: var(--accent); 
+            color: white; 
+            border: none;
+            font-size: 20px; 
+            cursor: pointer;
+            box-shadow: 0 6px 24px var(--accent-gl);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: all 0.18s;
+        }
+        .bottom-spacer {
+            height: 80px;
+            width: 100%;
+            display: block;
+        }
+        
+        @media (max-width: 640px) {
+            .fab {
+                bottom: 16px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+                font-size: 18px;
+            }
+            .bottom-spacer {
+                height: 70px;
+            }
+            /* Perbaikan header di mobile */
+            #header-name {
+                font-size: 12px;
+            }
+            #header-role {
+                font-size: 9px;
+            }
+            .topbar-right {
+                gap: 4px;
+            }
+            .btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .theme-toggle, .btn-icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
+        .fab:hover { transform: scale(1.06); }
+        .fab:active { transform: scale(0.95); }
+
+        /* ══════════════════════════════════════
+           CARDS
+        ══════════════════════════════════════ */
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: var(--tr);
+        }
+
+        /* ══════════════════════════════════════
+           STAT CARDS
+        ══════════════════════════════════════ */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        @media (max-width: 480px) { .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            transition: var(--tr);
+        }
+        .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-g); margin-bottom: 5px; }
+        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+        .stat-val-sm { font-size: 14px; }
+
+        /* ══════════════════════════════════════
+           LEADERBOARD
+        ══════════════════════════════════════ */
+        #leaderboard-section {
+            background: linear-gradient(135deg, #1a2a52 0%, #0d1a38 100%);
+            border: 1px solid rgba(91,143,255,0.15);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        [data-theme="light"] #leaderboard-section {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: transparent;
+        }
+        .lb-title { font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(255,220,100,0.9); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; justify-content: space-between; }
+        .lb-month { font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 500; }
+        #leaderboard-container { display: flex; gap: 8px; }
+        .lb-item { flex: 1; text-align: center; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 6px; }
+        .lb-medal { font-size: 16px; line-height: 1; margin-bottom: 3px; }
+        .lb-name { font-size: 9px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-amt { font-size: 8px; color: rgba(255,220,100,0.8); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+        /* ══════════════════════════════════════
+           FILTER BAR
+        ══════════════════════════════════════ */
+        .filter-bar {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            transition: var(--tr);
+        }
+        .g-select, .g-input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 7px 11px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.18s, background 0.18s;
+            min-height: 34px;
+        }
+        .g-select:focus, .g-input:focus { border-color: var(--accent); background: var(--accent-d); }
+        .g-input::placeholder { color: var(--text-g); }
+        option { background: var(--bg2); color: var(--text); }
+
+        /* ══════════════════════════════════════
+           TABLE
+        ══════════════════════════════════════ */
+        .table-wrap {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: var(--tr);
+        }
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 580px; font-size: 12px; }
+        thead th {
+            background: var(--thead-bg);
+            padding: 10px 12px;
+            text-align: left;
             font-size: 10px;
-            font-weight: 500;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--text-g);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            position: sticky; top: 0; z-index: 5;
         }
-        .hadir { background: #dcfce7; color: #166534; }
-        .tidak-hadir { background: #fee2e2; color: #991b1b; }
-        .leaderboard-item {
-            transition: all 0.2s ease;
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--row-h); }
+        tbody td { padding: 9px 12px; vertical-align: middle; }
+        .td-num { font-family: 'JetBrains Mono', monospace; }
+        .td-amt { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--green); white-space: nowrap; }
+        .td-date { color: var(--text-s); white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .td-note { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chip {
+            display: inline-flex; align-items: center; padding: 2px 7px;
+            border-radius: 6px; font-size: 9.5px; font-weight: 700;
+            font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em;
+            background: var(--accent-d); color: var(--accent);
+            border: 1px solid rgba(91,143,255,0.15);
         }
-        .download-btn {
-            background: #10b981;
+        .action-btn {
+            width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface); cursor: pointer; display: inline-flex;
+            align-items: center; justify-content: center; font-size: 11px;
+            transition: all 0.14s;
         }
-        .download-btn:hover {
-            background: #059669;
+        .action-btn:active { transform: scale(0.92); }
+        .action-edit { color: var(--accent); }
+        .action-edit:hover { background: var(--accent-d); border-color: rgba(91,143,255,0.2); }
+        .action-del { color: var(--red); }
+        .action-del:hover { background: var(--red-d); border-color: rgba(232,69,69,0.2); }
+
+        /* Pagination */
+        .pagination {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-s);
         }
+        .page-btn {
+            padding: 4px 9px; border-radius: 7px; font-size: 11px; font-weight: 600;
+            border: 1px solid var(--border); background: var(--surface); color: var(--text-s);
+            cursor: pointer; transition: all 0.14s; font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .page-btn:hover { background: var(--surface-h); }
+        .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .page-btn:disabled { opacity: 0.35; pointer-events: none; }
+        .page-btn-nav { padding: 4px 10px; }
+
+        /* ══════════════════════════════════════
+           MODALS
+        ══════════════════════════════════════ */
+        .modal-bg {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(12px);
+            z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-bg.show { display: flex; animation: fadeIn 0.18s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: popIn 0.22s cubic-bezier(.34,1.4,.64,1);
+            box-shadow: var(--shadow-lg);
+            transition: var(--tr);
+        }
+        @keyframes popIn { from { opacity:0; transform:scale(0.93); } to { opacity:1; transform:scale(1); } }
+
+        .modal-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-s); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.14s; }
+        .modal-close:hover { background: var(--surface-h); }
+
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 11.5px; font-weight: 600; color: var(--text-s); margin-bottom: 6px; display: block; letter-spacing: 0.01em; }
+        .form-input {
+            width: 100%; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 11px; padding: 11px 13px;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; color: var(--text);
+            outline: none; transition: border-color 0.18s, background 0.18s;
+        }
+        .form-input:focus { border-color: var(--accent); background: var(--accent-d); }
+        .form-input::placeholder { color: var(--text-g); }
+        .form-input[readonly] { opacity: 0.65; cursor: default; }
+        .form-input-right { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; }
+        input[type="datetime-local"].form-input { color-scheme: var(--cs, light); }
+        [data-theme="dark"] input[type="datetime-local"].form-input { color-scheme: dark; }
+
+        /* ══════════════════════════════════════
+           DRAWER — ABSENSI
+        ══════════════════════════════════════ */
+        .drawer-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 55;
+            opacity: 0; visibility: hidden;
+            transition: all 0.28s ease;
+        }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+
+        .drawer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-top-left-radius: 22px;
+            border-top-right-radius: 22px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(.32,1.1,.64,1);
+            z-index: 56;
+            max-height: 86vh;
+            overflow-y: auto;
+            transition: var(--tr), transform 0.3s cubic-bezier(.32,1.1,.64,1);
+        }
+        .drawer.open { transform: translateY(0); }
+        .drawer-header {
+            position: sticky; top: 0;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: var(--tr);
+        }
+        .drawer-pill { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+
+        /* Absensi cards */
+        .att-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            transition: var(--tr);
+        }
+        .att-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 100px;
+            font-size: 9px; font-weight: 700;
+        }
+        .att-in  { background: var(--green-d); color: var(--green); border: 1px solid rgba(63,214,138,0.2); }
+        .att-out { background: var(--red-d);   color: var(--red);   border: 1px solid rgba(232,69,69,0.2); }
+        .progress-track { width: 100%; height: 4px; background: var(--surface); border-radius: 4px; margin: 8px 0 6px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; background: var(--green); transition: width 0.5s ease; }
+
+        /* ══════════════════════════════════════
+           TOAST
+        ══════════════════════════════════════ */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) scale(0.9);
+            background: var(--bg2); border: 1px solid var(--border);
+            color: var(--text); padding: 9px 18px;
+            border-radius: 100px; font-size: 12px; font-weight: 600;
+            z-index: 200; opacity: 0;
+            transition: all 0.22s cubic-bezier(.34,1.5,.64,1);
+            white-space: nowrap; max-width: 90vw; text-align: center;
+            pointer-events: none; box-shadow: var(--shadow);
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        #toast.error { background: var(--red); color: white; border-color: var(--red); }
+
+        /* ══════════════════════════════════════
+           LOADING MODAL
+        ══════════════════════════════════════ */
+        #loading-modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(14px);
+            z-index: 100;
+            display: none;
+            align-items: center; justify-content: center;
+        }
+        .loader-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px 36px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transition: var(--tr);
+        }
+        .loader-ring {
+            width: 38px; height: 38px;
+            border: 2.5px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.65s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ══════════════════════════════════════
+           LOGIN PAGE
+        ══════════════════════════════════════ */
+        #login-container {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .login-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 30px 26px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: var(--shadow-lg);
+            transition: var(--tr);
+        }
+        .login-logo {
+            width: 68px; height: 68px; border-radius: 20px;
+            background: var(--accent); margin: 0 auto 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; color: white;
+            box-shadow: 0 8px 28px var(--accent-gl);
+        }
+
+        /* ══════════════════════════════════════
+           INITIAL LOADING
+        ══════════════════════════════════════ */
+        #initial-loading {
+            display: flex; min-height: 100vh;
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 12px;
+        }
+
+        /* ══════════════════════════════════════
+           CONTENT SPACING
+        ══════════════════════════════════════ */
+        .section-gap { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; }
+
+        /* ══════════════════════════════════════
+           ANIMATIONS
+        ══════════════════════════════════════ */
+        .fade-in { animation: fadeIn 0.22s ease both; }
+        .slide-up { animation: slideUp 0.25s ease both; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body>
 
-    <!-- Role Badge -->
-    <div id="role-badge" class="role-badge hidden"></div>
-
-    <div id="app-container" class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
-        
-        <!-- Loading Awal -->
-        <div id="initial-loading" class="flex justify-center items-center min-h-screen">
-            <div class="text-center">
-                <div class="loading-spinner mx-auto mb-3"></div>
-                <p class="text-sm text-gray-500">Memuat aplikasi...</p>
-            </div>
-        </div>
-
-        <!-- Form Login -->
-        <div id="login-container" class="hidden">
-            <div class="flex justify-center items-center min-h-screen">
-                <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-                    <div class="text-center mb-6">
-                        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                            <i class="fas fa-store text-white text-2xl"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-gray-800">Rocky Hijab</h2>
-                        <p class="text-xs text-gray-500">Koleksi terbaik untuk muslimah hebat</p>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">Username</label>
-                            <input type="text" id="login-username" placeholder="Masukkan username" class="w-full p-3 border rounded-xl mt-1 text-base">
-                        </div>
-                        <div>
-                            <label class="text-sm font-medium text-gray-700">PIN</label>
-                            <input type="password" id="login-pin" placeholder="Masukkan PIN" class="w-full p-3 border rounded-xl mt-1 text-base">
-                        </div>
-                        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold btn-touch">Login</button>
-                    </div>
-                    <p class="text-center text-xs text-gray-400 mt-4">
-                        🔐 <strong>Super Admin:</strong> Hubungi Admin<br>
-                        👤 <strong>User Staff:</strong> Login dengan username & PIN
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Konten Utama (setelah login) -->
-        <div id="main-content" class="hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-lg p-4 mb-4 text-white">
-                <div class="flex justify-between items-center mb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-user-shield text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-sm font-bold" id="header-name">Admin Panel</h1>
-                            <p class="text-[8px] text-blue-100" id="header-role">-</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch">
-                            <i class="fas fa-sync-alt mr-1"></i> Refresh
-                        </button>
-                        <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="bg-green-500/70 hover:bg-green-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch hidden">
-                            <i class="fas fa-calendar-check mr-1"></i> Absensi
-                        </button>
-                        <button id="download-excel-btn" onclick="downloadExcel()" class="bg-emerald-500/70 hover:bg-emerald-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch hidden">
-                            <i class="fas fa-file-excel mr-1"></i> Download Excel
-                        </button>
-                        <button onclick="logout()" class="bg-red-500/70 hover:bg-red-500 px-2 py-1.5 rounded-lg text-[10px] font-medium btn-touch">
-                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Leaderboard (hanya untuk Super Admin) -->
-                <div id="leaderboard-section" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm hidden">
-                    <div class="flex items-center justify-between mb-1 px-1">
-                        <span class="text-[8px] text-yellow-200 font-semibold">
-                            <i class="fas fa-crown text-[10px] mr-1"></i> LEADERBOARD BULAN INI
-                        </span>
-                        <span id="leaderboard-month" class="text-[8px] text-blue-100">-</span>
-                    </div>
-                    <div id="leaderboard-container" class="flex justify-between gap-1">
-                        <div class="text-center py-1 text-[8px] text-white/70 flex-1">Memuat...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Statistik Ringkas -->
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                    <p class="text-[8px] text-gray-400">Transaksi</p>
-                    <p id="stat-total" class="text-sm font-bold text-gray-800">0</p>
-                </div>
-                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                    <p class="text-[8px] text-gray-400">Omzet</p>
-                    <p id="stat-omzet" class="text-[10px] font-bold text-green-600 truncate">Rp 0</p>
-                </div>
-                <div class="bg-white rounded-xl p-2 shadow-sm text-center">
-                    <p class="text-[8px] text-gray-400">User</p>
-                    <p id="stat-users" class="text-sm font-bold text-purple-600">0</p>
-                </div>
-            </div>
-
-            <!-- Filter Bar -->
-            <div id="filter-section" class="bg-white rounded-xl shadow-sm p-2 mb-4">
-                <div class="flex flex-wrap gap-2">
-                    <select id="filter-period" onchange="setFilterPeriod()" class="flex-1 px-2 py-1.5 border rounded-lg text-xs bg-white btn-touch">
-                        <option value="today" selected>📅 Hari Ini</option>
-                        <option value="yesterday" id="opt-yesterday">📆 Kemarin</option>
-                        <option value="week" id="opt-week">📊 Minggu Ini</option>
-                        <option value="month" id="opt-month">📈 Bulan Ini</option>
-                        <option value="all" id="opt-all">🌐 Semua</option>
-                        <option value="custom" id="opt-custom">🎯 Custom</option>
-                    </select>
-                    
-                    <div id="date-range-container" class="hidden gap-2">
-                        <input type="date" id="date-start" class="px-2 py-1.5 border rounded-lg text-xs">
-                        <span class="self-center text-gray-400 text-xs">-</span>
-                        <input type="date" id="date-end" class="px-2 py-1.5 border rounded-lg text-xs">
-                        <button onclick="applyCustomRange()" class="bg-blue-500 text-white px-2 rounded-lg text-xs btn-touch">OK</button>
-                    </div>
-                    
-                    <input type="text" id="search-user" placeholder="Cari user..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
-                    <input type="text" id="search-note" placeholder="Cari item..." class="w-24 px-2 py-1.5 border rounded-lg text-xs">
-                    <button onclick="applySearch()" class="bg-blue-600 text-white px-3 rounded-lg text-xs btn-touch">
-                        <i class="fas fa-search text-[10px]"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tabel Data Transaksi -->
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
-                    <table class="w-full text-xs min-w-[550px]">
-                        <thead class="bg-gray-50 border-b sticky-header">
-                            <tr>
-                                <th class="px-2 py-2 text-left font-medium text-gray-500">No</th>
-                                <th class="px-2 py-2 text-left font-medium text-gray-500">Tanggal</th>
-                                <th class="px-2 py-2 text-left font-medium text-gray-500">User</th>
-                                <th class="px-2 py-2 text-left font-medium text-gray-500">Nama</th>
-                                <th class="px-2 py-2 text-left font-medium text-gray-500">Keterangan</th>
-                                <th class="px-2 py-2 text-right font-medium text-gray-500">Nominal</th>
-                                <th class="px-2 py-2 text-center font-medium text-gray-500">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="data-table" class="divide-y divide-gray-100">
-                            <tr>
-                                <td colspan="7" class="px-3 py-6 text-center text-gray-400">
-                                    <div class="loading-spinner mx-auto mb-1"></div>
-                                    Memuat...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination -->
-                <div class="px-2 py-2 border-t flex justify-between items-center text-[10px] text-gray-500">
-                    <span id="pagination-info">0 data</span>
-                    <div class="flex gap-1">
-                        <button id="prev-page" onclick="prevPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">←</button>
-                        <span id="page-numbers" class="flex gap-1"></span>
-                        <button id="next-page" onclick="nextPage()" class="px-2 py-1 border rounded disabled:opacity-50 btn-touch">→</button>
-                    </div>
-                </div>
-            </div>
+<!-- ══ TOPBAR (hidden until logged in) ══ -->
+<nav id="topbar" class="hidden">
+    <div class="topbar-left">
+        <!-- LOGO DIHAPUS -->
+        <div class="brand-info">
+            <div id="header-name">Rocky Hijab</div>
+            <div id="header-role">Admin Panel</div>
         </div>
     </div>
-
-    <!-- Floating Tombol Tambah Transaksi (HANYA UNTUK SUPER ADMIN) -->
-    <div id="floating-btn-container" class="floating-btn hidden">
-        <button onclick="showAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg btn-touch">
-            <i class="fas fa-plus text-base"></i>
+    <div class="topbar-right">
+        <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="btn btn-success hidden" style="font-size:11px;padding:7px 12px">
+            <i class="fas fa-calendar-check" style="font-size:10px"></i> Absensi
+        </button>
+        <button id="download-excel-btn" onclick="downloadExcel()" class="btn btn-ghost hidden" style="font-size:11px;padding:7px 12px">
+            <i class="fas fa-file-csv" style="font-size:10px"></i> CSV
+        </button>
+        <button onclick="fetchAllData()" class="btn btn-ghost" style="font-size:11px;padding:7px 12px">
+            <i class="fas fa-sync-alt" style="font-size:10px"></i>
+        </button>
+        <button class="theme-toggle" id="topbar-theme" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+        <button onclick="logout()" class="btn btn-danger" style="font-size:11px;padding:7px 12px">
+            <i class="fas fa-sign-out-alt" style="font-size:10px"></i>
         </button>
     </div>
+</nav>
 
-    <!-- Drawer Absensi (hanya untuk Super Admin) -->
-    <div id="drawer-attendance" class="drawer">
-        <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-            <h2 class="text-base font-bold text-gray-800">
-                <i class="fas fa-calendar-check text-green-500 mr-2"></i> Rekap Absensi Staff
-            </h2>
-            <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        <div class="p-4">
-            <div class="mb-3 text-center">
-                <p class="text-xs text-gray-500">Periode: <span id="attendance-period" class="font-semibold">Bulan Ini</span></p>
-                <p class="text-[10px] text-gray-400">Total hari kerja: <span id="total-work-days">0</span> hari</p>
-            </div>
-            <div id="attendance-list" class="space-y-3">
-                <div class="text-center py-4 text-gray-400">Memuat data absensi...</div>
-            </div>
-        </div>
+<!-- ══ MAIN APP CONTAINER ══ -->
+<div id="app-container">
+    <div id="initial-loading">
+        <div class="loader-ring"></div>
+        <p style="font-size:12.5px;color:var(--text-s)">Memuat aplikasi...</p>
     </div>
 
-    <!-- Modal Tambah/Edit Transaksi -->
-    <div id="transaction-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl w-full max-w-md p-5 shadow-2xl" style="max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-title" class="text-lg font-bold text-gray-800">Tambah Transaksi</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-2">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+    <!-- ══ LOGIN ══ -->
+    <div id="login-container">
+        <div class="login-card fade-in">
+            <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
+                <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
             </div>
-            <div class="space-y-4">
-                <div id="username-field">
-                    <label class="text-sm font-medium text-gray-700">Username Staff *</label>
-                    <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="w-full p-3 border rounded-xl mt-1 text-base" autocomplete="off">
-                    <datalist id="user-list"></datalist>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-700">Nama Staff</label>
-                    <input type="text" id="edit-name" placeholder="Akan terisi otomatis" readonly class="w-full p-3 border rounded-xl mt-1 bg-gray-50 text-base">
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-700">Keterangan / Item *</label>
-                    <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina" class="w-full p-3 border rounded-xl mt-1 text-base">
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-700">Nominal (Rp) *</label>
-                    <input type="number" id="edit-amount" placeholder="0" class="w-full p-3 border rounded-xl mt-1 text-base text-right font-bold">
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-700">Tanggal & Waktu</label>
-                    <input type="datetime-local" id="edit-time" class="w-full p-3 border rounded-xl mt-1 text-base">
-                </div>
-                <input type="hidden" id="edit-id">
+            <div class="login-logo"><i class="fas fa-store"></i></div>
+            <h2 style="font-size:20px;font-weight:800;text-align:center;letter-spacing:-0.02em;margin-bottom:3px">Rocky Hijab</h2>
+            <p style="font-size:11.5px;color:var(--text-s);text-align:center;margin-bottom:24px">Koleksi terbaik untuk muslimah hebat</p>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="login-username" placeholder="Masukkan username" class="form-input" autocomplete="off">
             </div>
-            <div class="flex gap-3 mt-6">
-                <button onclick="closeModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
-                <button id="save-btn" onclick="saveTransaction()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch">Simpan</button>
+            <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">PIN</label>
+                <input type="password" id="login-pin" placeholder="Masukkan PIN" class="form-input" inputmode="numeric">
             </div>
+            <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;border-radius:13px;letter-spacing:0.01em">Masuk</button>
+            <p style="text-align:center;font-size:10.5px;color:var(--text-g);margin-top:18px;line-height:1.7">
+                🔐 <strong>Super Admin:</strong> Hubungi Admin<br>
+                👤 <strong>User Staff:</strong> Username &amp; PIN
+            </p>
         </div>
     </div>
 
-    <!-- Modal Hapus -->
-    <div id="delete-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
-            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Transaksi?</h3>
-            <p class="text-sm text-gray-500 mb-4">Data yang dihapus tidak dapat dikembalikan!</p>
-            <p id="delete-info" class="text-xs text-gray-400 mb-4 bg-gray-50 p-2 rounded-lg"></p>
-            <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-200 rounded-xl font-medium btn-touch">Batal</button>
-                <button onclick="confirmDelete()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-medium btn-touch">Hapus</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Loading -->
-    <div id="loading-modal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-white rounded-2xl p-6 text-center">
-            <div class="loading-spinner mx-auto mb-3"></div>
-            <p id="loading-text" class="text-sm text-gray-600">Memproses...</p>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full text-xs z-50 transform scale-0 transition-transform duration-300 shadow-lg" style="max-width: 90vw; text-align: center;">
-        Notifikasi
-    </div>
-
-    <script>
-        // ==================== KONFIGURASI ====================
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz90w5941tfWMqlvaeqQhyOKeMzt9yeXPlLiKx1rSVSBYXATCJZILDD7_MSlKd-yuXy/exec";
-        
-        // Super Admin credentials
-        const SUPER_ADMIN = { username: "admin", pin: "170845" };
-        
-        // State
-        let allTransactions = [];
-        let filteredTransactions = [];
-        let allUsers = [];
-        let allAttendance = [];
-        let currentPage = 1;
-        let rowsPerPage = 15;
-        let currentFilter = 'today';
-        let customStartDate = null;
-        let customEndDate = null;
-        let searchUsername = '';
-        let searchNote = '';
-        let pendingDeleteId = null;
-        let currentUser = null;
-        let isAdmin = false;
-
-        // Helper Functions
-        function formatRupiah(angka) {
-            if (!angka && angka !== 0) return '0';
-            return new Intl.NumberFormat('id-ID').format(angka);
-        }
-
-        function formatDateTime(dateTimeStr) {
-            if (!dateTimeStr) return '-';
-            if (dateTimeStr.includes(' ')) {
-                const [date, time] = dateTimeStr.split(' ');
-                const [year, month, day] = date.split('-');
-                return `${day}/${month} ${time.slice(0,5)}`;
-            }
-            return dateTimeStr;
-        }
-
-        function formatFullDate(dateTimeStr) {
-            if (!dateTimeStr) return '-';
-            if (dateTimeStr.includes(' ')) {
-                const [date, time] = dateTimeStr.split(' ');
-                const [year, month, day] = date.split('-');
-                return `${day}/${month}/${year} ${time.slice(0,5)}`;
-            }
-            return dateTimeStr;
-        }
-
-        function getTodayDate() {
-            const now = new Date();
-            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            return wibTime.toISOString().slice(0, 10);
-        }
-
-        function getStartOfWeek() {
-            const now = new Date();
-            const wibNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            const day = wibNow.getDay();
-            const diff = wibNow.getDate() - day + (day === 0 ? -6 : 1);
-            const monday = new Date(wibNow);
-            monday.setDate(diff);
-            return monday.toISOString().slice(0, 10);
-        }
-
-        function getStartOfMonth() {
-            const now = new Date();
-            const wibNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            return `${wibNow.getFullYear()}-${String(wibNow.getMonth() + 1).padStart(2, '0')}-01`;
-        }
-
-        function getCurrentMonthYear() {
-            const now = new Date();
-            const wibNow = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${bulan[wibNow.getMonth()]} ${wibNow.getFullYear()}`;
-        }
-
-        function getDaysUntilToday(year, month) {
-            const todayWIB = getTodayDate();
-            const todayDate = parseInt(todayWIB.split('-')[2]);
-            const currentYear = parseInt(todayWIB.split('-')[0]);
-            const currentMonth = parseInt(todayWIB.split('-')[1]);
-            
-            if (year === currentYear && month === currentMonth) {
-                return todayDate;
-            }
-            return new Date(year, month, 0).getDate();
-        }
-
-        function getWIBForInput() {
-            const now = new Date();
-            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            return wibTime.toISOString().slice(0, 16);
-        }
-
-        function getWIBTime() {
-            const now = new Date();
-            const wibTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-            return wibTime.toISOString().replace('T', ' ').slice(0, 19);
-        }
-
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.remove('scale-0');
-            toast.classList.add('scale-100');
-            if (isError) toast.classList.add('bg-red-600');
-            else toast.classList.remove('bg-red-600');
-            setTimeout(() => {
-                toast.classList.remove('scale-100');
-                toast.classList.add('scale-0');
-            }, 3000);
-        }
-
-        function showLoading(show, text = 'Memproses...') {
-            const modal = document.getElementById('loading-modal');
-            const textEl = document.getElementById('loading-text');
-            if (show) {
-                textEl.innerText = text;
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        // ==================== DOWNLOAD EXCEL ====================
-        function downloadExcel() {
-            if (!isAdmin) {
-                showToast("Hanya Super Admin yang bisa download Excel!", true);
-                return;
-            }
-            
-            if (filteredTransactions.length === 0) {
-                showToast("Tidak ada data untuk didownload!", true);
-                return;
-            }
-            
-            // Siapkan data untuk Excel
-            const headers = ['No', 'Tanggal & Waktu', 'Username', 'Nama Staff', 'Keterangan', 'Nominal'];
-            const rows = filteredTransactions.map((t, idx) => [
-                idx + 1,
-                formatFullDate(t.time),
-                t.user || '',
-                t.name || '',
-                t.note || '',
-                t.amount || 0
-            ]);
-            
-            // Hitung total omzet
-            const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-            
-            // Tambahkan baris total
-            rows.push(['', '', '', '', 'TOTAL', totalOmzet]);
-            
-            // Konversi ke CSV
-            const csvContent = [headers, ...rows]
-                .map(row => row.map(cell => {
-                    if (typeof cell === 'number') {
-                        return cell;
-                    }
-                    return `"${String(cell).replace(/"/g, '""')}"`;
-                }).join(','))
-                .join('\n');
-            
-            // Buat filename berdasarkan filter
-            let filename = '';
-            if (currentFilter === 'today') {
-                filename = `rekap_transaksi_${getTodayDate()}`;
-            } else if (currentFilter === 'month') {
-                filename = `rekap_transaksi_${getCurrentMonthYear()}`;
-            } else if (currentFilter === 'week') {
-                filename = `rekap_transaksi_minggu_${getStartOfWeek()}_to_${getTodayDate()}`;
-            } else if (currentFilter === 'all') {
-                filename = `rekap_transaksi_semua`;
-            } else if (currentFilter === 'custom' && customStartDate && customEndDate) {
-                filename = `rekap_transaksi_${customStartDate}_to_${customEndDate}`;
-            } else {
-                filename = `rekap_transaksi_${new Date().toISOString().slice(0,19)}`;
-            }
-            
-            // Download file
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.setAttribute('download', `${filename}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            showToast(`✅ Download ${filteredTransactions.length} transaksi sebagai CSV`);
-        }
-
-        // ==================== LOGIN SYSTEM ====================
-        async function handleLogin() {
-            const username = document.getElementById('login-username').value.trim();
-            const pin = document.getElementById('login-pin').value.trim();
-            
-            if (!username || !pin) {
-                showToast("Isi username dan PIN!", true);
-                return;
-            }
-            
-            showLoading(true, "Memverifikasi...");
-            
-            // Cek Super Admin
-            if (username === SUPER_ADMIN.username && pin === SUPER_ADMIN.pin) {
-                currentUser = { username: "admin", name: "Super Admin", role: "admin" };
-                isAdmin = true;
-                showToast("✅ Login sebagai Super Admin");
-                await initAdminApp();
-                showLoading(false);
-                return;
-            }
-            
-            // Cek User dari sheet
-            try {
-                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
-                const response = await fetch(usersUrl);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const user = result.data.find(u => u.username === username && u.pin === pin);
-                    if (user) {
-                        currentUser = { username: user.username, name: user.name, role: "user" };
-                        isAdmin = false;
-                        showToast(`✅ Login sebagai ${user.name} (Hanya Lihat & Edit/Hapus transaksi sendiri)`);
-                        await initUserApp();
-                        showLoading(false);
-                        return;
-                    }
-                }
-                showToast("Username atau PIN salah!", true);
-            } catch (error) {
-                console.error('Login error:', error);
-                showToast("Gagal login, coba lagi!", true);
-            }
-            showLoading(false);
-        }
-        
-        async function initAdminApp() {
-            isAdmin = true;
-            document.getElementById('role-badge').innerHTML = '<i class="fas fa-crown mr-1"></i> SUPER ADMIN';
-            document.getElementById('role-badge').classList.add('admin-badge');
-            document.getElementById('role-badge').classList.remove('user-badge');
-            document.getElementById('role-badge').classList.remove('hidden');
-            document.getElementById('header-name').innerText = currentUser.name;
-            document.getElementById('header-role').innerHTML = '<i class="fas fa-crown text-[8px] mr-1"></i> Super Admin (Akses Penuh)';
-            
-            // Tampilkan tombol untuk admin
-            document.getElementById('attendance-btn-admin').classList.remove('hidden');
-            document.getElementById('download-excel-btn').classList.remove('hidden');
-            
-            // Tampilkan leaderboard untuk admin
-            document.getElementById('leaderboard-section').classList.remove('hidden');
-            
-            // Tampilkan semua opsi filter
-            document.getElementById('opt-yesterday').style.display = '';
-            document.getElementById('opt-week').style.display = '';
-            document.getElementById('opt-month').style.display = '';
-            document.getElementById('opt-all').style.display = '';
-            document.getElementById('opt-custom').style.display = '';
-            
-            // Tampilkan tombol tambah (hanya admin)
-            document.getElementById('floating-btn-container').classList.remove('hidden');
-            
-            // Load data
-            await fetchAllData();
-            
-            // Tampilkan konten
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('initial-loading').classList.add('hidden');
-        }
-        
-        async function initUserApp() {
-            isAdmin = false;
-            document.getElementById('role-badge').innerHTML = '<i class="fas fa-user mr-1"></i> ' + currentUser.name;
-            document.getElementById('role-badge').classList.add('user-badge');
-            document.getElementById('role-badge').classList.remove('admin-badge');
-            document.getElementById('role-badge').classList.remove('hidden');
-            document.getElementById('header-name').innerText = currentUser.name;
-            document.getElementById('header-role').innerHTML = '<i class="fas fa-user text-[8px] mr-1"></i> Staff (Hanya Lihat & Edit/Hapus sendiri)';
-            
-            // Sembunyikan tombol untuk user
-            document.getElementById('attendance-btn-admin').classList.add('hidden');
-            document.getElementById('download-excel-btn').classList.add('hidden');
-            
-            // Sembunyikan leaderboard untuk user
-            document.getElementById('leaderboard-section').classList.add('hidden');
-            
-            // Sembunyikan opsi filter selain Hari Ini
-            document.getElementById('opt-yesterday').style.display = 'none';
-            document.getElementById('opt-week').style.display = 'none';
-            document.getElementById('opt-month').style.display = 'none';
-            document.getElementById('opt-all').style.display = 'none';
-            document.getElementById('opt-custom').style.display = 'none';
-            document.getElementById('filter-period').value = 'today';
-            
-            // Sembunyikan tombol tambah untuk user
-            document.getElementById('floating-btn-container').classList.add('hidden');
-            
-            // Load data
-            await fetchUserData();
-            
-            // Tampilkan konten
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('initial-loading').classList.add('hidden');
-        }
-        
-        function logout() {
-            if (confirm("Yakin ingin logout?")) {
-                currentUser = null;
-                isAdmin = false;
-                allTransactions = [];
-                filteredTransactions = [];
-                document.getElementById('login-container').classList.remove('hidden');
-                document.getElementById('main-content').classList.add('hidden');
-                document.getElementById('role-badge').classList.add('hidden');
-                document.getElementById('floating-btn-container').classList.add('hidden');
-                document.getElementById('attendance-btn-admin').classList.add('hidden');
-                document.getElementById('download-excel-btn').classList.add('hidden');
-                document.getElementById('leaderboard-section').classList.add('hidden');
-                document.getElementById('login-username').value = '';
-                document.getElementById('login-pin').value = '';
-            }
-        }
-
-        // ==================== FETCH DATA (ADMIN) ====================
-        async function fetchAllData() {
-            showToast("🔄 Mengambil data...");
-            
-            try {
-                const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
-                const trxResponse = await fetch(trxUrl);
-                const trxResult = await trxResponse.json();
-                
-                if (trxResult.success && trxResult.data) {
-                    allTransactions = trxResult.data;
-                } else {
-                    allTransactions = [];
-                }
-                
-                const attUrl = `${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`;
-                const attResponse = await fetch(attUrl);
-                const attResult = await attResponse.json();
-                
-                if (attResult.success && attResult.data) {
-                    allAttendance = attResult.data;
-                } else {
-                    allAttendance = [];
-                }
-                
-                const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
-                const usersResponse = await fetch(usersUrl);
-                const usersResult = await usersResponse.json();
-                
-                if (usersResult.success && usersResult.data) {
-                    allUsers = usersResult.data;
-                    updateUserDatalist();
-                }
-                
-                applyFilters();
-                renderLeaderboard();
-                showToast(`✅ ${allTransactions.length} transaksi`);
-                
-            } catch (error) {
-                console.error('Error fetching:', error);
-                showToast("❌ Gagal mengambil data", true);
-                allTransactions = [];
-                renderTable();
-            }
-        }
-        
-        // ==================== FETCH DATA (USER) ====================
-        async function fetchUserData() {
-            showToast("🔄 Mengambil data transaksi anda...");
-            
-            try {
-                const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`;
-                const trxResponse = await fetch(trxUrl);
-                const trxResult = await trxResponse.json();
-                
-                if (trxResult.success && trxResult.data) {
-                    allTransactions = trxResult.data;
-                } else {
-                    allTransactions = [];
-                }
-                
-                // User hanya bisa lihat transaksi hari ini
-                currentFilter = 'today';
-                document.getElementById('filter-period').value = 'today';
-                applyFilters();
-                showToast(`✅ ${filteredTransactions.length} transaksi hari ini`);
-                
-            } catch (error) {
-                console.error('Error fetching:', error);
-                showToast("❌ Gagal mengambil data", true);
-                allTransactions = [];
-                renderTable();
-            }
-        }
-
-        function updateUserDatalist() {
-            const datalist = document.getElementById('user-list');
-            if (datalist && isAdmin) {
-                datalist.innerHTML = allUsers.map(u => 
-                    `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`
-                ).join('');
-            }
-        }
-
-        // ==================== LEADERBOARD (ADMIN ONLY) ====================
-        function getUserOmzetThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allTransactions
-                .filter(t => t.user === username)
-                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
-                .filter(t => (t.time || '').slice(0, 10) <= today)
-                .reduce((sum, t) => sum + (t.amount || 0), 0);
-        }
-
-        function renderLeaderboard() {
-            if (!isAdmin) return;
-            
-            const container = document.getElementById('leaderboard-container');
-            const monthSpan = document.getElementById('leaderboard-month');
-            
-            if (!container) return;
-            
-            monthSpan.innerText = getCurrentMonthYear();
-            
-            if (allUsers.length === 0) {
-                container.innerHTML = '<div class="text-center py-1 text-[8px] text-white/70 flex-1">Belum ada data</div>';
-                return;
-            }
-            
-            const userStats = allUsers.map(user => ({
-                ...user,
-                omzet: getUserOmzetThisMonth(user.username)
-            }));
-            
-            userStats.sort((a, b) => b.omzet - a.omzet);
-            const top3 = userStats.slice(0, 3);
-            
-            let html = '';
-            const medals = ['🥇', '🥈', '🥉'];
-            const bgColors = ['bg-yellow-500/30', 'bg-gray-400/30', 'bg-orange-600/30'];
-            
-            for (let i = 0; i < 3; i++) {
-                if (top3[i]) {
-                    html += `
-                        <div class="leaderboard-item flex-1 text-center ${bgColors[i]} rounded-lg p-1">
-                            <div class="text-xs">${medals[i]}</div>
-                            <div class="text-[9px] font-bold truncate">${escapeHtml(top3[i].name.split(' ')[0])}</div>
-                            <div class="text-[8px] text-yellow-200">Rp ${formatRupiah(Math.floor(top3[i].omzet / 1000))}K</div>
+    <!-- ══ MAIN CONTENT ══ -->
+    <div id="main-content" class="hidden">
+        <div class="main-wrapper">
+            <div class="content-center">
+                <div class="section-gap">
+                    <!-- Leaderboard (admin only) -->
+                    <div id="leaderboard-section" class="hidden slide-up">
+                        <div class="lb-title">
+                            <span><i class="fas fa-crown" style="color:#ffd700;margin-right:5px"></i> LEADERBOARD BULAN INI</span>
+                            <span id="leaderboard-month" class="lb-month">-</span>
                         </div>
-                    `;
-                } else {
-                    html += `<div class="flex-1 text-center opacity-30 rounded-lg p-1">
-                        <div class="text-xs">❓</div>
-                        <div class="text-[8px]">-</div>
-                    </div>`;
-                }
-            }
-            
-            container.innerHTML = html;
-        }
-
-        // ==================== FILTER FUNCTIONS ====================
-        function setFilterPeriod() {
-            if (!isAdmin) return;
-            
-            const period = document.getElementById('filter-period').value;
-            currentFilter = period;
-            customStartDate = null;
-            customEndDate = null;
-            
-            const dateRangeContainer = document.getElementById('date-range-container');
-            if (period === 'custom') {
-                dateRangeContainer.classList.remove('hidden');
-                document.getElementById('date-start').value = getTodayDate();
-                document.getElementById('date-end').value = getTodayDate();
-            } else {
-                dateRangeContainer.classList.add('hidden');
-            }
-            
-            applyFilters();
-        }
-
-        function applyCustomRange() {
-            const start = document.getElementById('date-start').value;
-            const end = document.getElementById('date-end').value;
-            
-            if (start && end) {
-                customStartDate = start;
-                customEndDate = end;
-                currentFilter = 'custom';
-                document.getElementById('filter-period').value = 'custom';
-                applyFilters();
-            } else {
-                showToast("Pilih tanggal!", true);
-            }
-        }
-
-        function applySearch() {
-            searchUsername = document.getElementById('search-user').value.toLowerCase();
-            searchNote = document.getElementById('search-note').value.toLowerCase();
-            currentPage = 1;
-            applyFilters();
-        }
-
-        function applyFilters() {
-            let filtered = [...allTransactions];
-            const today = getTodayDate();
-            const startOfWeek = getStartOfWeek();
-            const startOfMonth = getStartOfMonth();
-            
-            if (currentFilter === 'today') {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === today);
-            } 
-            else if (currentFilter === 'yesterday' && isAdmin) {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().slice(0, 10);
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) === yesterdayStr);
-            }
-            else if (currentFilter === 'week' && isAdmin) {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
-            }
-            else if (currentFilter === 'month' && isAdmin) {
-                filtered = filtered.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
-            }
-            else if (currentFilter === 'all' && isAdmin) {
-                // semua data
-            }
-            else if (currentFilter === 'custom' && isAdmin && customStartDate && customEndDate) {
-                filtered = filtered.filter(t => {
-                    const tDate = (t.time || '').slice(0, 10);
-                    return tDate >= customStartDate && tDate <= customEndDate;
-                });
-            }
-            
-            if (searchUsername) {
-                filtered = filtered.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
-            }
-            
-            if (searchNote) {
-                filtered = filtered.filter(t => (t.note || '').toLowerCase().includes(searchNote));
-            }
-            
-            filtered.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
-            
-            filteredTransactions = filtered;
-            updateStatistics();
-            currentPage = 1;
-            renderTable();
-        }
-
-        function updateStatistics() {
-            const total = filteredTransactions.length;
-            const totalOmzet = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-            const uniqueUsers = new Set(filteredTransactions.map(t => t.user));
-            
-            document.getElementById('stat-total').innerText = total;
-            document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(totalOmzet)}`;
-            document.getElementById('stat-users').innerText = isAdmin ? uniqueUsers.size : 1;
-        }
-
-        // ==================== CRUD OPERATIONS ====================
-        function showAddModal() {
-            if (!isAdmin) {
-                showToast("Anda tidak memiliki izin untuk menambah transaksi!", true);
-                return;
-            }
-            
-            document.getElementById('modal-title').innerText = 'Tambah Transaksi';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('edit-username').value = '';
-            document.getElementById('edit-name').value = '';
-            document.getElementById('edit-note').value = '';
-            document.getElementById('edit-amount').value = '';
-            document.getElementById('edit-time').value = getWIBForInput();
-            
-            const usernameField = document.getElementById('username-field');
-            if (usernameField) {
-                usernameField.style.display = 'block';
-            }
-            
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            const usernameInput = document.getElementById('edit-username');
-            usernameInput.onchange = function() {
-                const user = allUsers.find(u => u.username === this.value);
-                if (user) {
-                    document.getElementById('edit-name').value = user.name;
-                } else {
-                    document.getElementById('edit-name').value = '';
-                }
-            };
-        }
-
-        function showEditModal(id) {
-            const transaction = allTransactions.find(t => t.id == id);
-            if (!transaction) return;
-            
-            if (!isAdmin && transaction.user !== currentUser.username) {
-                showToast("Anda hanya bisa mengedit transaksi sendiri!", true);
-                return;
-            }
-            
-            document.getElementById('modal-title').innerText = 'Edit Transaksi';
-            document.getElementById('edit-id').value = transaction.id;
-            document.getElementById('edit-username').value = transaction.user || '';
-            document.getElementById('edit-name').value = transaction.name || '';
-            document.getElementById('edit-note').value = transaction.note || '';
-            document.getElementById('edit-amount').value = transaction.amount || '';
-            
-            let timeValue = transaction.time || '';
-            if (timeValue && timeValue.includes(' ')) {
-                timeValue = timeValue.replace(' ', 'T').slice(0, 16);
-            }
-            document.getElementById('edit-time').value = timeValue || getWIBForInput();
-            
-            if (isAdmin) {
-                document.getElementById('username-field').style.display = 'block';
-            } else {
-                document.getElementById('username-field').style.display = 'none';
-            }
-            
-            document.getElementById('transaction-modal').classList.remove('hidden');
-            
-            if (isAdmin) {
-                const usernameInput = document.getElementById('edit-username');
-                usernameInput.onchange = function() {
-                    const user = allUsers.find(u => u.username === this.value);
-                    if (user) {
-                        document.getElementById('edit-name').value = user.name;
-                    } else {
-                        document.getElementById('edit-name').value = '';
-                    }
-                };
-            }
-        }
-
-        async function saveTransaction() {
-            const id = document.getElementById('edit-id').value;
-            let username = document.getElementById('edit-username').value.trim();
-            let name = document.getElementById('edit-name').value.trim();
-            const note = document.getElementById('edit-note').value.trim();
-            const amount = parseInt(document.getElementById('edit-amount').value);
-            let time = document.getElementById('edit-time').value;
-            
-            if (!isAdmin && !id) {
-                showToast("Anda tidak memiliki izin untuk menambah transaksi baru!", true);
-                closeModal();
-                return;
-            }
-            
-            if (!isAdmin && id) {
-                username = currentUser.username;
-                name = currentUser.name;
-            }
-            
-            if (!username) {
-                showToast("Username harus diisi!", true);
-                return;
-            }
-            if (!amount || amount <= 0) {
-                showToast("Nominal harus diisi!", true);
-                return;
-            }
-            if (!note) {
-                showToast("Keterangan harus diisi!", true);
-                return;
-            }
-            
-            if (time) {
-                time = time.replace('T', ' ') + ':00';
-            } else {
-                time = getWIBTime();
-            }
-            
-            showLoading(true, "Menyimpan...");
-            
-            try {
-                if (id) {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'delete_transaction',
-                            payload: { serverId: id.toString() }
-                        })
-                    });
-                    
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi diupdate!");
-                } else {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'transaction',
-                            payload: {
-                                user: username,
-                                name: name,
-                                amount: amount,
-                                note: note,
-                                time: time
-                            }
-                        })
-                    });
-                    showToast("✅ Transaksi ditambahkan!");
-                }
-                
-                closeModal();
-                if (isAdmin) {
-                    await fetchAllData();
-                } else {
-                    await fetchUserData();
-                }
-                
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast("❌ Gagal menyimpan", true);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function showDeleteModal(id, note, amount, user) {
-            if (!isAdmin && user !== currentUser.username) {
-                showToast("Anda hanya bisa menghapus transaksi sendiri!", true);
-                return;
-            }
-            
-            pendingDeleteId = id;
-            document.getElementById('delete-info').innerHTML = `📝 ${note}<br>💰 Rp ${amount}`;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            pendingDeleteId = null;
-            document.getElementById('delete-modal').classList.add('hidden');
-        }
-
-        async function confirmDelete() {
-            if (!pendingDeleteId) return;
-            
-            showLoading(true, "Menghapus...");
-            
-            try {
-                await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'delete_transaction',
-                        payload: { serverId: pendingDeleteId.toString() }
-                    })
-                });
-                
-                showToast("✅ Transaksi dihapus!");
-                closeDeleteModal();
-                if (isAdmin) {
-                    await fetchAllData();
-                } else {
-                    await fetchUserData();
-                }
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                showToast("❌ Gagal hapus", true);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('transaction-modal').classList.add('hidden');
-        }
-
-        // ==================== DRAWER ABSENSI (ADMIN ONLY) ====================
-        function openDrawer(type) {
-            if (!isAdmin) return;
-            
-            let overlay = document.getElementById('drawer-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'drawer-overlay';
-                overlay.className = 'drawer-overlay';
-                overlay.onclick = closeDrawer;
-                document.body.appendChild(overlay);
-            }
-            
-            const drawer = document.getElementById(`drawer-${type}`);
-            renderAttendanceList();
-            overlay.classList.add('open');
-            drawer.classList.add('open');
-        }
-
-        function closeDrawer() {
-            const overlay = document.getElementById('drawer-overlay');
-            const drawer = document.getElementById('drawer-attendance');
-            if (overlay) overlay.remove();
-            if (drawer) drawer.classList.remove('open');
-        }
-
-        function getUserAttendanceThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allAttendance
-                .filter(a => a.user === username)
-                .filter(a => {
-                    const attDate = (a.time || '').slice(0, 10);
-                    return attDate >= startOfMonth && attDate <= today;
-                });
-        }
-
-        function renderAttendanceList() {
-            const container = document.getElementById('attendance-list');
-            if (!container) return;
-            
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            const currentYear = parseInt(startOfMonth.slice(0, 4));
-            const currentMonth = parseInt(startOfMonth.slice(5, 7));
-            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
-            
-            document.getElementById('attendance-period').innerText = getCurrentMonthYear();
-            document.getElementById('total-work-days').innerText = totalWorkDays;
-            
-            if (allUsers.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-gray-400">Tidak ada data user</div>';
-                return;
-            }
-            
-            const attendanceData = allUsers.map(user => {
-                const attendanceRecords = getUserAttendanceThisMonth(user.username);
-                const hadirCount = attendanceRecords.length;
-                const persentase = totalWorkDays > 0 ? Math.round((hadirCount / totalWorkDays) * 100) : 0;
-                
-                return {
-                    ...user,
-                    hadirCount,
-                    persentase,
-                    attendanceRecords
-                };
-            });
-            
-            attendanceData.sort((a, b) => b.persentase - a.persentase);
-            
-            container.innerHTML = attendanceData.map(user => {
-                const statusColor = user.persentase >= 80 ? 'text-green-600' : (user.persentase >= 50 ? 'text-yellow-600' : 'text-red-600');
-                const statusBg = user.persentase >= 80 ? 'bg-green-50' : (user.persentase >= 50 ? 'bg-yellow-50' : 'bg-red-50');
-                
-                return `
-                    <div class="bg-white rounded-xl p-3 shadow-sm border ${statusBg}">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-gray-800 text-sm">${escapeHtml(user.name)}</h3>
-                                <p class="text-[9px] text-gray-400">@${escapeHtml(user.username)}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-lg font-bold ${statusColor}">${user.persentase}%</p>
-                                <p class="text-[8px] text-gray-400">${user.hadirCount}/${totalWorkDays}</p>
-                            </div>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                            <div class="bg-green-500 h-1.5 rounded-full" style="width: ${user.persentase}%"></div>
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                            ${user.attendanceRecords.length > 0 ? 
-                                user.attendanceRecords.slice(0, 10).map(att => `
-                                    <span class="attendance-badge hadir text-[8px] py-0.5">
-                                        ${(att.time || '').slice(5, 10)}
-                                    </span>
-                                `).join('') : 
-                                '<span class="text-[9px] text-gray-400">Belum absen</span>'
-                            }
+                        <div id="leaderboard-container" style="display:flex;gap:8px">
+                            <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.5);padding:8px">Memuat...</div>
                         </div>
                     </div>
-                `;
+
+                    <!-- Stats -->
+                    <div class="stat-grid slide-up">
+                        <div class="stat-card">
+                            <p class="stat-lbl">Transaksi</p>
+                            <p id="stat-total" class="stat-val">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-lbl">Omzet</p>
+                            <p id="stat-omzet" class="stat-val stat-val-sm" style="color:var(--green)">Rp 0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-lbl">User</p>
+                            <p id="stat-users" class="stat-val" style="color:var(--purple)">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <div id="filter-section" class="filter-bar slide-up">
+                        <select id="filter-period" onchange="setFilterPeriod()" class="g-select" style="flex:1;min-width:120px">
+                            <option value="today" selected>📅 Hari Ini</option>
+                            <option value="yesterday" id="opt-yesterday">📆 Kemarin</option>
+                            <option value="week"      id="opt-week">📊 Minggu Ini</option>
+                            <option value="month"     id="opt-month">📈 Bulan Ini</option>
+                            <option value="all"       id="opt-all">🌐 Semua</option>
+                            <option value="custom"    id="opt-custom">🎯 Custom</option>
+                        </select>
+                        <div id="date-range-container" style="display:none;align-items:center;gap:6px">
+                            <input type="date" id="date-start" class="g-input" style="width:auto">
+                            <span style="color:var(--text-g);font-size:11px">–</span>
+                            <input type="date" id="date-end" class="g-input" style="width:auto">
+                            <button onclick="applyCustomRange()" class="btn btn-primary" style="padding:7px 12px;font-size:11px">OK</button>
+                        </div>
+                        <input type="text" id="search-user" placeholder="Cari user…" class="g-input" style="width:110px">
+                        <input type="text" id="search-note" placeholder="Cari item…" class="g-input" style="width:110px">
+                        <button onclick="applySearch()" class="btn btn-primary" style="padding:7px 14px;font-size:12px">
+                            <i class="fas fa-search" style="font-size:10px"></i> Cari
+                        </button>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-wrap slide-up">
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:32px">No</th>
+                                        <th>Tanggal</th>
+                                        <th>User</th>
+                                        <th>Nama</th>
+                                        <th>Keterangan</th>
+                                        <th style="text-align:right">Nominal</th>
+                                        <th style="text-align:center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data-table">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center;padding:40px;color:var(--text-g)">
+                                            <div class="loader-ring" style="margin:0 auto 10px"></div>
+                                            Memuat...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="pagination">
+                            <span id="pagination-info" style="font-family:'JetBrains Mono',monospace">0 data</span>
+                            <div style="display:flex;gap:5px;align-items:center">
+                                <button id="prev-page" onclick="prevPage()" class="page-btn page-btn-nav">←</button>
+                                <span id="page-numbers" style="display:flex;gap:4px"></span>
+                                <button id="next-page" onclick="nextPage()" class="page-btn page-btn-nav">→</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- BOTTOM SPACER: Menambahkan ruang agar FAB tidak menghalangi konten terakhir -->
+                    <div class="bottom-spacer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /app-container -->
+
+<!-- ══ FAB — Add Transaksi ══ -->
+<button id="floating-btn-container" onclick="showAddModal()" class="fab hidden" title="Tambah Transaksi">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- ══ DRAWER ABSENSI ══ -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer-attendance" class="drawer">
+    <div class="drawer-header">
+        <p style="font-size:14px;font-weight:700"><i class="fas fa-calendar-check" style="color:var(--green);margin-right:7px"></i>Rekap Absensi Staff</p>
+        <button onclick="closeDrawer()" class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:14px 18px 32px">
+        <div style="text-align:center;margin-bottom:16px">
+            <p style="font-size:11px;color:var(--text-s)">Periode: <strong id="attendance-period">Bulan Ini</strong></p>
+            <p style="font-size:10px;color:var(--text-g);margin-top:2px">Total hari kerja: <span id="total-work-days">0</span> hari</p>
+        </div>
+        <div id="attendance-list">
+            <div style="text-align:center;padding:24px;color:var(--text-g)">Memuat data absensi...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL TRANSAKSI ══ -->
+<div id="transaction-modal" class="modal-bg">
+    <div class="modal-box">
+        <div class="modal-title">
+            <span id="modal-title-text">Tambah Transaksi</span>
+            <button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="username-field" class="form-group">
+            <label class="form-label">Username Staff *</label>
+            <input type="text" id="edit-username" list="user-list" placeholder="Pilih username staff" class="form-input" autocomplete="off">
+            <datalist id="user-list"></datalist>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nama Staff</label>
+            <input type="text" id="edit-name" placeholder="Terisi otomatis" readonly class="form-input">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Keterangan / Item *</label>
+            <input type="text" id="edit-note" placeholder="Contoh: Hijab Pashmina" class="form-input">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nominal (Rp) *</label>
+            <input type="number" id="edit-amount" placeholder="0" class="form-input form-input-right">
+        </div>
+        <div class="form-group" style="margin-bottom:22px">
+            <label class="form-label">Tanggal &amp; Waktu</label>
+            <input type="datetime-local" id="edit-time" class="form-input">
+        </div>
+        <input type="hidden" id="edit-id">
+        <div style="display:flex;gap:10px">
+            <button onclick="closeModal()" class="btn btn-ghost" style="flex:1;padding:12px">Batal</button>
+            <button id="save-btn" onclick="saveTransaction()" class="btn btn-primary" style="flex:1;padding:12px">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL HAPUS ══ -->
+<div id="delete-modal" class="modal-bg">
+    <div class="modal-box" style="max-width:360px;text-align:center">
+        <div style="width:52px;height:52px;background:var(--red-d);border:1px solid rgba(232,69,69,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;color:var(--red)">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <p style="font-size:16px;font-weight:700;margin-bottom:5px">Hapus Transaksi?</p>
+        <p style="font-size:12px;color:var(--text-s);margin-bottom:14px">Data yang dihapus tidak dapat dikembalikan!</p>
+        <div id="delete-info" style="background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 14px;font-size:12px;color:var(--text-s);margin-bottom:20px;text-align:left"></div>
+        <div style="display:flex;gap:10px">
+            <button onclick="closeDeleteModal()" class="btn btn-ghost" style="flex:1;padding:12px">Batal</button>
+            <button onclick="confirmDelete()" class="btn" style="flex:1;padding:12px;background:var(--red);color:white;border-radius:10px;font-size:13px">Hapus</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ LOADING MODAL ══ -->
+<div id="loading-modal">
+    <div class="loader-box">
+        <div class="loader-ring"></div>
+        <p id="loading-text" style="font-size:12.5px;color:var(--text-s)">Memproses...</p>
+    </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast">Notifikasi</div>
+
+<script>
+    // ══════════════════ KONFIGURASI ══════════════════
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz90w5941tfWMqlvaeqQhyOKeMzt9yeXPlLiKx1rSVSBYXATCJZILDD7_MSlKd-yuXy/exec";
+    const SUPER_ADMIN = { username: "admin", pin: "170845" };
+
+    // State
+    let allTransactions = [], filteredTransactions = [];
+    let allUsers = [], allAttendance = [];
+    let currentPage = 1, rowsPerPage = 15;
+    let currentFilter = 'today';
+    let customStartDate = null, customEndDate = null;
+    let searchUsername = '', searchNote = '';
+    let pendingDeleteId = null;
+    let currentUser = null, isAdmin = false;
+
+    // ══════════════════ THEME ══════════════════
+    const getTheme = () => localStorage.getItem('admin-theme') || 'light';
+    const applyTheme = t => {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('admin-theme', t);
+        document.querySelectorAll('.theme-toggle').forEach(b => {
+            b.innerHTML = t === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+    };
+    const toggleTheme = () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    (function(){ applyTheme(getTheme()); })();
+
+    // ══════════════════ HELPERS ZONA WAKTU WIB (UTC+7) ══════════════════
+    function getWIBDate(date = new Date()) {
+        return new Date(date.getTime() + (7 * 60 * 60 * 1000));
+    }
+
+    function getTodayDate() { 
+        const wib = getWIBDate();
+        return wib.toISOString().slice(0,10);
+    }
+    
+    function getYesterdayDate() {
+        const wib = getWIBDate();
+        wib.setDate(wib.getDate() - 1);
+        return wib.toISOString().slice(0,10);
+    }
+    
+    function getStartOfWeek() { 
+        const wib = getWIBDate();
+        const day = wib.getDay();
+        const diff = wib.getDate() - day + (day === 0 ? -6 : 1);
+        const m = new Date(wib);
+        m.setDate(diff);
+        return m.toISOString().slice(0,10);
+    }
+    
+    function getStartOfMonth() { 
+        const wib = getWIBDate();
+        return `${wib.getFullYear()}-${String(wib.getMonth()+1).padStart(2,'0')}-01`;
+    }
+    
+    function getCurrentMonthYear() { 
+        const wib = getWIBDate();
+        const b = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+        return `${b[wib.getMonth()]} ${wib.getFullYear()}`;
+    }
+    
+    function getDaysUntilToday(y, m) { 
+        const today = getTodayDate();
+        const td = parseInt(today.split('-')[2]);
+        const cy = parseInt(today.split('-')[0]);
+        const cm = parseInt(today.split('-')[1]);
+        return (y===cy && m===cm) ? td : new Date(y, m, 0).getDate();
+    }
+    
+    function getWIBForInput() { 
+        const wib = getWIBDate();
+        return wib.toISOString().slice(0,16);
+    }
+    
+    function getWIBTime() { 
+        const wib = getWIBDate();
+        return wib.toISOString().replace('T',' ').slice(0,19);
+    }
+
+    function formatRupiah(n) { if (!n && n !== 0) return '0'; return new Intl.NumberFormat('id-ID').format(n); }
+
+    function formatDateTime(s) {
+        if (!s) return '-';
+        if (s.includes(' ')) { const [d, t] = s.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m} ${t.slice(0,5)}`; }
+        return s;
+    }
+    function formatFullDate(s) {
+        if (!s) return '-';
+        if (s.includes(' ')) { const [d, t] = s.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y} ${t.slice(0,5)}`; }
+        return s;
+    }
+    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
+    // ══════════════════ TOAST & LOADING ══════════════════
+    let toastTimer;
+    function showToast(msg, isError=false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.toggle('error', isError);
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    function showLoading(show, text='Memproses...') {
+        const m = document.getElementById('loading-modal');
+        document.getElementById('loading-text').innerText = text;
+        m.style.display = show ? 'flex' : 'none';
+    }
+
+    // ══════════════════ DOWNLOAD CSV ══════════════════
+    function downloadExcel() {
+        if (!isAdmin) { showToast("Hanya Super Admin!", true); return; }
+        if (!filteredTransactions.length) { showToast("Tidak ada data!", true); return; }
+        const headers = ['No','Tanggal & Waktu','Username','Nama Staff','Keterangan','Nominal'];
+        const rows = filteredTransactions.map((t,i) => [i+1, formatFullDate(t.time), t.user||'', t.name||'', t.note||'', t.amount||0]);
+        rows.push(['','','','','TOTAL', filteredTransactions.reduce((s,t)=>s+(t.amount||0),0)]);
+        const csv = [headers,...rows].map(r=>r.map(c=>typeof c==='number'?c:`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        let fn = currentFilter==='today'?`rekap_${getTodayDate()}`:currentFilter==='month'?`rekap_${getCurrentMonthYear()}`:`rekap_transaksi`;
+        const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `${fn}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        showToast(`✅ Download ${filteredTransactions.length} transaksi`);
+    }
+
+    // ══════════════════ LOGIN ══════════════════
+    async function handleLogin() {
+        const username = document.getElementById('login-username').value.trim();
+        const pin = document.getElementById('login-pin').value.trim();
+        if (!username || !pin) { showToast("Isi username dan PIN!", true); return; }
+        showLoading(true, "Memverifikasi...");
+
+        if (username === SUPER_ADMIN.username && pin === SUPER_ADMIN.pin) {
+            currentUser = { username:'admin', name:'Super Admin', role:'admin' };
+            isAdmin = true;
+            showToast("✅ Login sebagai Super Admin");
+            await initAdminApp();
+            showLoading(false); return;
+        }
+
+        try {
+            const r = await fetch(`${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`);
+            const d = await r.json();
+            if (d.success && d.data) {
+                const user = d.data.find(u => u.username===username && u.pin===pin);
+                if (user) {
+                    currentUser = {username:user.username, name:user.name, role:'user'};
+                    isAdmin = false;
+                    showToast(`✅ Login sebagai ${user.name}`);
+                    await initUserApp(); showLoading(false); return;
+                }
+            }
+            showToast("Username atau PIN salah!", true);
+        } catch(e) { showToast("Gagal login, coba lagi!", true); }
+        showLoading(false);
+    }
+
+    async function initAdminApp() {
+        isAdmin = true;
+        document.getElementById('header-name').innerHTML = '<i class="fas fa-crown" style="color:var(--amber);margin-right:4px;font-size:11px"></i> Super Admin';
+        document.getElementById('header-role').innerHTML = '<span style="background:var(--accent-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--accent)"><i class="fas fa-key" style="font-size:8px;margin-right:3px"></i> Akses Penuh</span>';
+        document.getElementById('attendance-btn-admin').classList.remove('hidden');
+        document.getElementById('download-excel-btn').classList.remove('hidden');
+        document.getElementById('leaderboard-section').classList.remove('hidden');
+        document.getElementById('floating-btn-container').classList.remove('hidden');
+        ['opt-yesterday','opt-week','opt-month','opt-all','opt-custom'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display=''; });
+        await fetchAllData();
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('main-content').classList.remove('hidden');
+        document.getElementById('initial-loading').style.display = 'none';
+        document.getElementById('topbar').classList.remove('hidden');
+    }
+
+    async function initUserApp() {
+        isAdmin = false;
+        document.getElementById('header-name').innerHTML = '<i class="fas fa-user" style="color:var(--accent);margin-right:4px;font-size:11px"></i> ' + currentUser.name;
+        document.getElementById('header-role').innerHTML = '<span style="background:var(--green-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--green)"><i class="fas fa-briefcase" style="font-size:8px;margin-right:3px"></i> Staff</span>';
+        document.getElementById('attendance-btn-admin').classList.add('hidden');
+        document.getElementById('download-excel-btn').classList.add('hidden');
+        document.getElementById('leaderboard-section').classList.add('hidden');
+        document.getElementById('floating-btn-container').classList.add('hidden');
+        ['opt-yesterday','opt-week','opt-month','opt-all','opt-custom'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+        document.getElementById('filter-period').value = 'today';
+        await fetchUserData();
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('main-content').classList.remove('hidden');
+        document.getElementById('initial-loading').style.display = 'none';
+        document.getElementById('topbar').classList.remove('hidden');
+    }
+
+    function logout() {
+        if (!confirm("Yakin ingin logout?")) return;
+        currentUser = null; isAdmin = false;
+        allTransactions = []; filteredTransactions = [];
+        document.getElementById('login-container').style.display = 'flex';
+        document.getElementById('main-content').classList.add('hidden');
+        document.getElementById('topbar').classList.add('hidden');
+        document.getElementById('floating-btn-container').classList.add('hidden');
+        document.getElementById('attendance-btn-admin').classList.add('hidden');
+        document.getElementById('download-excel-btn').classList.add('hidden');
+        document.getElementById('leaderboard-section').classList.add('hidden');
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-pin').value = '';
+    }
+
+    // ══════════════════ FETCH DATA ══════════════════
+    async function fetchAllData() {
+        showToast("🔄 Mengambil data...");
+        try {
+            const [trxR, attR, usrR] = await Promise.all([
+                fetch(`${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`),
+                fetch(`${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`),
+                fetch(`${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`)
+            ]);
+            const [trxD, attD, usrD] = await Promise.all([trxR.json(), attR.json(), usrR.json()]);
+            allTransactions = trxD.success && trxD.data ? trxD.data : [];
+            allAttendance   = attD.success && attD.data ? attD.data : [];
+            allUsers        = usrD.success && usrD.data ? usrD.data : [];
+            updateUserDatalist();
+            applyFilters();
+            renderLeaderboard();
+            showToast(`✅ ${allTransactions.length} transaksi`);
+        } catch(e) { showToast("❌ Gagal mengambil data", true); allTransactions=[]; renderTable(); }
+    }
+
+    async function fetchUserData() {
+        showToast("🔄 Mengambil data...");
+        try {
+            const r = await fetch(`${GAS_WEB_APP_URL}?action=get&type=transactions&user=${currentUser.username}&t=${Date.now()}`);
+            const d = await r.json();
+            allTransactions = d.success && d.data ? d.data : [];
+            currentFilter = 'today';
+            document.getElementById('filter-period').value = 'today';
+            applyFilters();
+            showToast(`✅ ${filteredTransactions.length} transaksi hari ini`);
+        } catch(e) { showToast("❌ Gagal mengambil data", true); allTransactions=[]; renderTable(); }
+    }
+
+    function updateUserDatalist() {
+        const dl = document.getElementById('user-list');
+        if (dl && isAdmin) dl.innerHTML = allUsers.map(u=>`<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`).join('');
+    }
+
+    // ══════════════════ LEADERBOARD ══════════════════
+    function getUserOmzetThisMonth(username) {
+        const start = getStartOfMonth(), today = getTodayDate();
+        return allTransactions.filter(t=>t.user===username).filter(t=>(t.time||'').slice(0,10)>=start&&(t.time||'').slice(0,10)<=today).reduce((s,t)=>s+(t.amount||0),0);
+    }
+
+    function renderLeaderboard() {
+        if (!isAdmin) return;
+        const c = document.getElementById('leaderboard-container');
+        document.getElementById('leaderboard-month').innerText = getCurrentMonthYear();
+        if (!allUsers.length) { c.innerHTML='<div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.4);padding:8px">Belum ada data</div>'; return; }
+        const stats = allUsers.map(u=>({...u, omzet:getUserOmzetThisMonth(u.username)})).sort((a,b)=>b.omzet-a.omzet);
+        const medals = ['🥇','🥈','🥉'];
+        let html = '';
+        for (let i=0; i<3; i++) {
+            if (stats[i]) {
+                html += `<div class="lb-item">
+                    <div class="lb-medal">${medals[i]}</div>
+                    <div class="lb-name">${escapeHtml(stats[i].name.split(' ')[0])}</div>
+                    <div class="lb-amt">Rp ${formatRupiah(Math.floor(stats[i].omzet/1000))}K</div>
+                </div>`;
+            } else {
+                html += `<div class="lb-item" style="opacity:.3"><div class="lb-medal">❓</div><div class="lb-name">-</div><div class="lb-amt">-</div></div>`;
+            }
+        }
+        c.innerHTML = html;
+    }
+
+    // ══════════════════ FILTERS ══════════════════
+    function setFilterPeriod() {
+        if (!isAdmin) return;
+        currentFilter = document.getElementById('filter-period').value;
+        customStartDate = null; customEndDate = null;
+        const dr = document.getElementById('date-range-container');
+        if (currentFilter === 'custom') {
+            dr.style.display = 'flex';
+            document.getElementById('date-start').value = getTodayDate();
+            document.getElementById('date-end').value   = getTodayDate();
+        } else { dr.style.display = 'none'; }
+        applyFilters();
+    }
+
+    function applyCustomRange() {
+        const s=document.getElementById('date-start').value, e=document.getElementById('date-end').value;
+        if (s && e) { customStartDate=s; customEndDate=e; currentFilter='custom'; document.getElementById('filter-period').value='custom'; applyFilters(); }
+        else showToast("Pilih tanggal!", true);
+    }
+
+    function applySearch() {
+        searchUsername = document.getElementById('search-user').value.toLowerCase();
+        searchNote     = document.getElementById('search-note').value.toLowerCase();
+        currentPage = 1; applyFilters();
+    }
+
+    function applyFilters() {
+        let f = [...allTransactions];
+        const today = getTodayDate();
+        const startWeek = getStartOfWeek();
+        const startMonth = getStartOfMonth();
+        const yesterday = getYesterdayDate();
+
+        if (currentFilter === 'today') {
+            f = f.filter(t => (t.time || '').slice(0, 10) === today);
+        } 
+        else if (currentFilter === 'yesterday' && isAdmin) {
+            f = f.filter(t => (t.time || '').slice(0, 10) === yesterday);
+        } 
+        else if (currentFilter === 'week' && isAdmin) {
+            f = f.filter(t => (t.time || '').slice(0, 10) >= startWeek);
+        } 
+        else if (currentFilter === 'month' && isAdmin) {
+            f = f.filter(t => (t.time || '').slice(0, 10) >= startMonth);
+        } 
+        else if (currentFilter === 'all' && isAdmin) {
+            // semua data
+        } 
+        else if (currentFilter === 'custom' && isAdmin && customStartDate && customEndDate) {
+            f = f.filter(t => {
+                const d = (t.time || '').slice(0, 10);
+                return d >= customStartDate && d <= customEndDate;
+            });
+        }
+
+        if (searchUsername) {
+            f = f.filter(t => (t.user || '').toLowerCase().includes(searchUsername));
+        }
+        if (searchNote) {
+            f = f.filter(t => (t.note || '').toLowerCase().includes(searchNote));
+        }
+
+        f.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+        filteredTransactions = f;
+        updateStatistics();
+        currentPage = 1;
+        renderTable();
+    }
+
+    function updateStatistics() {
+        const total = filteredTransactions.length;
+        const omzet = filteredTransactions.reduce((s,t)=>s+(t.amount||0),0);
+        const users = new Set(filteredTransactions.map(t=>t.user));
+        document.getElementById('stat-total').innerText = total;
+        document.getElementById('stat-omzet').innerHTML = total > 999 ? `<span style="font-size:13px">Rp ${formatRupiah(omzet)}</span>` : `Rp ${formatRupiah(omzet)}`;
+        document.getElementById('stat-users').innerText = isAdmin ? users.size : 1;
+    }
+
+    // ══════════════════ RENDER TABLE ══════════════════
+    function renderTable() {
+        const tbody = document.getElementById('data-table');
+        const startIdx = (currentPage-1)*rowsPerPage, endIdx = startIdx+rowsPerPage;
+        const pageData = filteredTransactions.slice(startIdx, endIdx);
+
+        if (!pageData.length) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-g)">
+                <i class="fas fa-inbox" style="font-size:28px;display:block;margin-bottom:10px;opacity:.5"></i>
+                Tidak ada data transaksi
+            </td></tr>`;
+        } else {
+            tbody.innerHTML = pageData.map((t,i)=>{
+                const canDel = isAdmin || t.user===currentUser?.username;
+                const canEdit= isAdmin || t.user===currentUser?.username;
+                return `<tr>
+                    <td class="td-num" style="color:var(--text-g);font-size:11px">${startIdx+i+1}</td>
+                    <td class="td-date">${formatDateTime(t.time)}</td>
+                    <td><span class="chip">${escapeHtml(t.user||'-')}</span></td>
+                    <td style="font-weight:500">${escapeHtml(t.name||'-')}</td>
+                    <td class="td-note" style="color:var(--text-s)">${escapeHtml(t.note||'-')}</td>
+                    <td class="td-amt" style="text-align:right">Rp ${formatRupiah(t.amount)}</td>
+                    <td style="text-align:center">
+                        <div style="display:flex;gap:5px;justify-content:center">
+                            ${canEdit?`<button onclick="showEditModal('${t.id}')" class="action-btn action-edit" title="Edit"><i class="fas fa-pen" style="font-size:10px"></i></button>`:''}
+                            ${canDel?`<button onclick="showDeleteModal('${t.id}','${escapeHtml(t.note).replace(/'/g,"\\'")}','${formatRupiah(t.amount)}','${t.user}')" class="action-btn action-del" title="Hapus"><i class="fas fa-trash-alt" style="font-size:10px"></i></button>`:''}
+                        </div>
+                    </td>
+                </tr>`;
             }).join('');
         }
 
-        // ==================== RENDER TABLE ====================
-        function renderTable() {
-            const tbody = document.getElementById('data-table');
-            const startIdx = (currentPage - 1) * rowsPerPage;
-            const endIdx = startIdx + rowsPerPage;
-            const pageData = filteredTransactions.slice(startIdx, endIdx);
-            
-            if (pageData.length === 0) {
-                tbody.innerHTML = `
-                    <tr><td colspan="7" class="px-3 py-6 text-center text-gray-400">
-                        <i class="fas fa-inbox text-2xl mb-1 block"></i>
-                        Tidak ada data transaksi
-                    </td></tr>
-                `;
+        const totalPages = Math.ceil(filteredTransactions.length/rowsPerPage);
+        document.getElementById('pagination-info').innerHTML = filteredTransactions.length > 0
+            ? `${startIdx+1}–${Math.min(endIdx,filteredTransactions.length)} / ${filteredTransactions.length}`
+            : '0 data';
+
+        const pn = document.getElementById('page-numbers');
+        if (pn) {
+            const maxV=3, startP=Math.max(1,currentPage-Math.floor(maxV/2));
+            const endP=Math.min(totalPages,startP+maxV-1);
+            let html='';
+            for (let i=startP;i<=endP;i++) html+=`<button onclick="goToPage(${i})" class="page-btn ${i===currentPage?'active':''}">${i}</button>`;
+            pn.innerHTML = html;
+        }
+
+        const prev=document.getElementById('prev-page'), next=document.getElementById('next-page');
+        if (prev) prev.disabled = currentPage===1;
+        if (next) next.disabled = currentPage>=totalPages;
+    }
+
+    function goToPage(p) { currentPage=p; renderTable(); }
+    function prevPage() { if(currentPage>1){currentPage--;renderTable();} }
+    function nextPage() { const t=Math.ceil(filteredTransactions.length/rowsPerPage); if(currentPage<t){currentPage++;renderTable();} }
+
+    // ══════════════════ CRUD ══════════════════
+    function showAddModal() {
+        if (!isAdmin) { showToast("Anda tidak memiliki izin!", true); return; }
+        document.getElementById('modal-title-text').innerText = 'Tambah Transaksi';
+        ['edit-id','edit-username','edit-name','edit-note','edit-amount'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+        document.getElementById('edit-time').value = getWIBForInput();
+        document.getElementById('username-field').style.display = 'block';
+        document.getElementById('transaction-modal').classList.add('show');
+        const ui = document.getElementById('edit-username');
+        ui.onchange = () => { const u=allUsers.find(u=>u.username===ui.value); document.getElementById('edit-name').value=u?u.name:''; };
+    }
+
+    function showEditModal(id) {
+        const t = allTransactions.find(t=>t.id==id); if(!t) return;
+        if (!isAdmin && t.user!==currentUser.username) { showToast("Hanya bisa edit transaksi sendiri!", true); return; }
+        document.getElementById('modal-title-text').innerText = 'Edit Transaksi';
+        document.getElementById('edit-id').value = t.id;
+        document.getElementById('edit-username').value = t.user||'';
+        document.getElementById('edit-name').value = t.name||'';
+        document.getElementById('edit-note').value = t.note||'';
+        document.getElementById('edit-amount').value = t.amount||'';
+        let tv = t.time||'';
+        if (tv.includes(' ')) tv=tv.replace(' ','T').slice(0,16);
+        document.getElementById('edit-time').value = tv||getWIBForInput();
+        document.getElementById('username-field').style.display = isAdmin?'block':'none';
+        document.getElementById('transaction-modal').classList.add('show');
+        if (isAdmin) {
+            const ui=document.getElementById('edit-username');
+            ui.onchange=()=>{ const u=allUsers.find(u=>u.username===ui.value); document.getElementById('edit-name').value=u?u.name:''; };
+        }
+    }
+
+    async function saveTransaction() {
+        const id = document.getElementById('edit-id').value;
+        let username = document.getElementById('edit-username').value.trim();
+        let name     = document.getElementById('edit-name').value.trim();
+        const note   = document.getElementById('edit-note').value.trim();
+        const amount = parseInt(document.getElementById('edit-amount').value);
+        let time     = document.getElementById('edit-time').value;
+
+        if (!isAdmin && !id) { showToast("Tidak ada izin!", true); closeModal(); return; }
+        if (!isAdmin && id) { username=currentUser.username; name=currentUser.name; }
+        if (!username) { showToast("Username harus diisi!", true); return; }
+        if (!amount||amount<=0) { showToast("Nominal harus diisi!", true); return; }
+        if (!note) { showToast("Keterangan harus diisi!", true); return; }
+        if (time) time=time.replace('T',' ')+':00'; else time=getWIBTime();
+
+        showLoading(true, "Menyimpan...");
+        try {
+            if (id) {
+                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'delete_transaction',payload:{serverId:id.toString()}})});
+                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'transaction',payload:{user:username,name,amount,note,time}})});
+                showToast("✅ Transaksi diupdate!");
             } else {
-                tbody.innerHTML = pageData.map((t, idx) => `
-                    <tr class="table-row">
-                        <td class="px-2 py-2 text-gray-400">${startIdx + idx + 1}</td>
-                        <td class="px-2 py-2 text-gray-600 whitespace-nowrap">${formatDateTime(t.time)}</td>
-                        <td class="px-2 py-2">
-                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[9px] font-mono">${escapeHtml(t.user || '-')}</span>
-                        </td>
-                        <td class="px-2 py-2">${escapeHtml(t.name || '-')}</td>
-                        <td class="px-2 py-2 max-w-[120px] truncate">${escapeHtml(t.note || '-')}</td>
-                        <td class="px-2 py-2 text-right font-bold text-green-600 whitespace-nowrap">Rp ${formatRupiah(t.amount)}</td>
-                        <td class="px-2 py-2 text-center whitespace-nowrap">
-                            <div class="flex gap-1 justify-center">
-                                <button onclick="showEditModal('${t.id}')" class="text-blue-500 p-1 rounded active:bg-blue-50 btn-touch">
-                                    <i class="fas fa-edit text-xs"></i>
-                                </button>
-                                <button onclick="showDeleteModal('${t.id}', '${escapeHtml(t.note).replace(/'/g, "\\'")}', '${formatRupiah(t.amount)}', '${t.user}')" class="text-red-500 p-1 rounded active:bg-red-50 btn-touch">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'transaction',payload:{user:username,name,amount,note,time}})});
+                showToast("✅ Transaksi ditambahkan!");
             }
-            
-            const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
-            document.getElementById('pagination-info').innerHTML = `${startIdx + 1}-${Math.min(endIdx, filteredTransactions.length)}/${filteredTransactions.length}`;
-            
-            const pageNumbersDiv = document.getElementById('page-numbers');
-            if (pageNumbersDiv) {
-                let pageHtml = '';
-                const maxVisible = 3;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-                if (endPage - startPage + 1 < maxVisible) {
-                    startPage = Math.max(1, endPage - maxVisible + 1);
-                }
-                for (let i = startPage; i <= endPage; i++) {
-                    pageHtml += `<button onclick="goToPage(${i})" class="px-2 py-0.5 rounded text-xs ${i === currentPage ? 'bg-blue-600 text-white' : 'border'}">${i}</button>`;
-                }
-                pageNumbersDiv.innerHTML = pageHtml;
-            }
-            
-            const prevBtn = document.getElementById('prev-page');
-            const nextBtn = document.getElementById('next-page');
-            if (prevBtn) prevBtn.disabled = currentPage === 1;
-            if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-        }
+            closeModal();
+            if (isAdmin) await fetchAllData(); else await fetchUserData();
+        } catch(e) { showToast("❌ Gagal menyimpan", true); }
+        finally { showLoading(false); }
+    }
 
-        function goToPage(page) {
-            currentPage = page;
-            renderTable();
-        }
+    function showDeleteModal(id, note, amount, user) {
+        if (!isAdmin && user!==currentUser.username) { showToast("Hanya bisa hapus sendiri!", true); return; }
+        pendingDeleteId = id;
+        document.getElementById('delete-info').innerHTML = `<i class="fas fa-tag" style="margin-right:6px;color:var(--text-g)"></i>${note}<br><i class="fas fa-coins" style="margin-right:6px;color:var(--green);margin-top:5px;display:inline-block"></i>Rp ${amount}`;
+        document.getElementById('delete-modal').classList.add('show');
+    }
 
-        function prevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        }
+    function closeDeleteModal() { pendingDeleteId=null; document.getElementById('delete-modal').classList.remove('show'); }
 
-        function nextPage() {
-            const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderTable();
-            }
-        }
+    async function confirmDelete() {
+        if (!pendingDeleteId) return;
+        showLoading(true, "Menghapus...");
+        try {
+            await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'delete_transaction',payload:{serverId:pendingDeleteId.toString()}})});
+            showToast("✅ Transaksi dihapus!");
+            closeDeleteModal();
+            if (isAdmin) await fetchAllData(); else await fetchUserData();
+        } catch(e) { showToast("❌ Gagal hapus", true); }
+        finally { showLoading(false); }
+    }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
+    function closeModal() { document.getElementById('transaction-modal').classList.remove('show'); }
 
-        // ==================== INIT ====================
-        function init() {
-            document.getElementById('initial-loading').classList.add('hidden');
-            document.getElementById('login-container').classList.remove('hidden');
-            
-            document.getElementById('search-user')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') applySearch();
-            });
-            document.getElementById('search-note')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') applySearch();
-            });
-        }
-        
-        init();
-    </script>
+    // ══════════════════ DRAWER ABSENSI ══════════════════
+    function openDrawer(type) {
+        if (!isAdmin) return;
+        renderAttendanceList();
+        document.getElementById('drawer-overlay').classList.add('open');
+        document.getElementById(`drawer-${type}`).classList.add('open');
+    }
+    function closeDrawer() {
+        document.getElementById('drawer-overlay').classList.remove('open');
+        document.getElementById('drawer-attendance').classList.remove('open');
+    }
+
+    function getUserAttendanceThisMonth(username) {
+        const start=getStartOfMonth(), today=getTodayDate();
+        return allAttendance.filter(a=>a.user===username).filter(a=>{const d=(a.time||'').slice(0,10);return d>=start&&d<=today;});
+    }
+
+    function renderAttendanceList() {
+        const container = document.getElementById('attendance-list'); if(!container) return;
+        const start=getStartOfMonth(), today=getTodayDate();
+        const cy=parseInt(start.slice(0,4)), cm=parseInt(start.slice(5,7));
+        const totalDays = getDaysUntilToday(cy, cm);
+
+        document.getElementById('attendance-period').innerText = getCurrentMonthYear();
+        document.getElementById('total-work-days').innerText = totalDays;
+
+        if (!allUsers.length) { container.innerHTML='<div style="text-align:center;padding:16px;color:var(--text-g);font-size:12px">Tidak ada data user</div>'; return; }
+
+        const data = allUsers.map(u => {
+            const recs = getUserAttendanceThisMonth(u.username);
+            const hadir = recs.length;
+            const pct = totalDays>0?Math.round((hadir/totalDays)*100):0;
+            return {...u, hadir, pct, recs};
+        }).sort((a,b)=>b.pct-a.pct);
+
+        container.innerHTML = data.map(u => {
+            const color = u.pct>=80?'var(--green)':u.pct>=50?'var(--amber)':'var(--red)';
+            return `<div class="att-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <div>
+                        <p style="font-size:13px;font-weight:700">${escapeHtml(u.name)}</p>
+                        <p style="font-size:10px;color:var(--text-g);margin-top:1px">@${escapeHtml(u.username)}</p>
+                    </div>
+                    <div style="text-align:right">
+                        <p style="font-size:18px;font-weight:800;color:${color};font-family:'JetBrains Mono',monospace">${u.pct}%</p>
+                        <p style="font-size:9px;color:var(--text-g);font-family:'JetBrains Mono',monospace">${u.hadir}/${totalDays}</p>
+                    </div>
+                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:${u.pct}%;background:${color}"></div></div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+                    ${u.recs.length>0
+                        ? u.recs.slice(0,10).map(a=>`<span class="att-badge att-in">${(a.time||'').slice(5,10)}</span>`).join('')
+                        : '<span style="font-size:9.5px;color:var(--text-g)">Belum absen</span>'}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ══════════════════ KEYBOARD SHORTCUT ══════════════════
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.activeElement.id === 'login-pin') handleLogin();
+        if (e.key === 'Enter' && (document.activeElement.id==='search-user'||document.activeElement.id==='search-note')) applySearch();
+        if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeDrawer(); }
+    });
+
+    // ══════════════════ INIT ══════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('initial-loading').style.display = 'none';
+        document.getElementById('login-container').style.display = 'flex';
+    });
+</script>
 </body>
 </html>
