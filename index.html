@@ -101,12 +101,12 @@
         }
         .hadir { background: #dcfce7; color: #166534; }
         .tidak-hadir { background: #fee2e2; color: #991b1b; }
-        code {
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 10px;
+        .leaderboard-card {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
         }
+        .gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .silver { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); }
+        .bronze { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
         .floating-btn {
             position: fixed;
             bottom: 20px;
@@ -124,32 +124,34 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
-                        <i class="fas fa-user-shield text-white text-lg sm:text-xl"></i>
+                        <i class="fas fa-trophy text-white text-lg sm:text-xl"></i>
                     </div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-bold">Admin Panel - Rocky Hijab</h1>
-                        <p class="text-[10px] sm:text-xs text-blue-100">Kelola transaksi & absensi staff (Admin bebas transaksi)</p>
+                        <p class="text-[10px] sm:text-xs text-blue-100">Leaderboard & Manajemen Transaksi</p>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
-                        <i class="fas fa-sync-alt mr-1"></i> Refresh
-                    </button>
-                    <button onclick="openDrawer('bonus')" class="bg-yellow-500/80 hover:bg-yellow-500 active:bg-yellow-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-gift mr-1"></i> Bonus
-                    </button>
-                    <button onclick="openDrawer('attendance')" class="bg-green-500/80 hover:bg-green-500 active:bg-green-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-calendar-check mr-1"></i> Absensi
-                    </button>
-                    <button onclick="openDrawer('backup')" class="bg-purple-500/80 hover:bg-purple-500 active:bg-purple-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch">
-                        <i class="fas fa-clipboard mr-1"></i> Backup
-                    </button>
-                </div>
+                <button onclick="fetchAllData()" class="bg-white/20 hover:bg-white/30 active:bg-white/40 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition backdrop-blur btn-touch">
+                    <i class="fas fa-sync-alt mr-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD - Juara Bulan Ini -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-bold text-gray-700">
+                    <i class="fas fa-crown text-yellow-500 mr-2"></i> Leaderboard Bulan Ini
+                </h2>
+                <span id="leaderboard-month" class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full">-</span>
+            </div>
+            <div id="leaderboard-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center py-8 text-gray-400 col-span-full">Memuat leaderboard...</div>
             </div>
         </div>
 
         <!-- Statistik Ringkas -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 sm:mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 sm:mb-6">
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-blue-500">
                 <p class="text-[10px] text-gray-400">Total Transaksi</p>
                 <p id="stat-total" class="text-xl sm:text-2xl font-bold text-gray-800">0</p>
@@ -163,12 +165,8 @@
                 <p id="stat-users" class="text-xl sm:text-2xl font-bold text-purple-600">0</p>
             </div>
             <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-orange-500">
-                <p class="text-[10px] text-gray-400">Bonus Bulan Ini</p>
-                <p id="stat-total-bonus" class="text-sm sm:text-lg font-bold text-orange-600 truncate">Rp 0</p>
-            </div>
-            <div class="bg-white rounded-xl p-3 shadow-sm border-l-4 border-teal-500">
-                <p class="text-[10px] text-gray-400">Total Absen Bulan Ini</p>
-                <p id="stat-total-absen" class="text-xl sm:text-2xl font-bold text-teal-600">0</p>
+                <p class="text-[10px] text-gray-400">Top Omzet Bulan Ini</p>
+                <p id="stat-top-omzet" class="text-sm sm:text-lg font-bold text-orange-600 truncate">Rp 0</p>
             </div>
         </div>
 
@@ -254,30 +252,6 @@
         </button>
     </div>
 
-    <!-- Drawer Overlay -->
-    <div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-
-    <!-- Drawer Bonus -->
-    <div id="drawer-bonus" class="drawer">
-        <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-gray-800">
-                <i class="fas fa-gift text-yellow-500 mr-2"></i> Bonus Staff
-            </h2>
-            <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="p-4">
-            <div class="mb-4 text-center">
-                <p class="text-xs text-gray-500">Periode: <span id="bonus-period" class="font-semibold">Bulan Ini</span></p>
-                <p class="text-xs text-gray-400 mt-1">Bonus Rp 150.000 per Rp 10.000.000 omzet</p>
-            </div>
-            <div id="bonus-list" class="space-y-3">
-                <div class="text-center py-4 text-gray-400">Memuat data bonus...</div>
-            </div>
-        </div>
-    </div>
-
     <!-- Drawer Absensi -->
     <div id="drawer-attendance" class="drawer">
         <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
@@ -295,67 +269,6 @@
             </div>
             <div id="attendance-list" class="space-y-3">
                 <div class="text-center py-4 text-gray-400">Memuat data absensi...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Drawer Backup & Restore -->
-    <div id="drawer-backup" class="drawer">
-        <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-gray-800">
-                <i class="fas fa-clipboard text-purple-500 mr-2"></i> Backup & Restore Data
-            </h2>
-            <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="p-4">
-            <!-- Backup Section -->
-            <div class="mb-6">
-                <h3 class="text-sm font-bold text-gray-700 mb-3">📤 Backup Data</h3>
-                <div class="mb-4">
-                    <label class="text-sm font-medium text-gray-700">Pilih User</label>
-                    <select id="backup-user-select" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
-                        <option value="">-- Pilih User --</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="text-sm font-medium text-gray-700">Periode Data</label>
-                    <select id="backup-period" class="w-full p-3 border rounded-xl mt-1 text-base btn-touch">
-                        <option value="all">📅 Semua Waktu</option>
-                        <option value="month">📈 Bulan Ini</option>
-                        <option value="week">📊 Minggu Ini</option>
-                        <option value="today">📅 Hari Ini</option>
-                    </select>
-                </div>
-                <button onclick="backupSelectedUser()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium btn-touch flex items-center justify-center gap-2">
-                    <i class="fas fa-clipboard"></i> Backup ke Clipboard
-                </button>
-            </div>
-
-            <!-- Divider -->
-            <div class="border-t my-4"></div>
-
-            <!-- Restore Section -->
-            <div>
-                <h3 class="text-sm font-bold text-gray-700 mb-3">📥 Restore Data ke Sheet</h3>
-                <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
-                    <p class="text-[10px] text-yellow-700 text-center">
-                        <i class="fas fa-exclamation-triangle mr-1"></i> 
-                        Restore akan mengirim data dari clipboard ke Google Sheet.<br>
-                        Hanya data BARU yang akan ditambahkan (cegah duplikasi).
-                    </p>
-                </div>
-                <button onclick="restoreToSheet()" class="w-full py-3 bg-red-600 text-white rounded-xl font-medium btn-touch flex items-center justify-center gap-2">
-                    <i class="fas fa-database"></i> Restore dari Clipboard ke Sheet
-                </button>
-            </div>
-
-            <div class="mt-6 pt-4 border-t">
-                <p class="text-xs text-gray-400 text-center">
-                    Format backup kompatibel dengan aplikasi karyawan.<br>
-                    <code>{"version":"7.0","data":{"users":[...],"transactions":[...],"attendance":[...]}}</code>
-                </p>
             </div>
         </div>
     </div>
@@ -430,10 +343,6 @@
     <script>
         // ==================== KONFIGURASI ====================
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwruPxgynIUQV_kpe57S6LwcEFWdcJaDbiY8SEg7z9XuZ5GVrYFZL8PatkDj1SMZ05x/exec";
-        
-        // Konfigurasi Bonus
-        const BONUS_PER_10JT = 150000;
-        const OMSET_PER_BONUS = 10000000;
         
         // State
         let allTransactions = [];
@@ -519,10 +428,6 @@
             return wibTime.toISOString().replace('T', ' ').slice(0, 19);
         }
 
-        function calculateBonus(omzet) {
-            return Math.floor(omzet / OMSET_PER_BONUS) * BONUS_PER_10JT;
-        }
-
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -552,12 +457,8 @@
             const overlay = document.getElementById('drawer-overlay');
             const drawer = document.getElementById(`drawer-${type}`);
             
-            if (type === 'bonus') {
-                renderBonusList();
-            } else if (type === 'attendance') {
+            if (type === 'attendance') {
                 renderAttendanceList();
-            } else if (type === 'backup') {
-                updateUserSelectForBackup();
             }
             
             overlay.classList.add('open');
@@ -566,14 +467,10 @@
 
         function closeDrawer() {
             const overlay = document.getElementById('drawer-overlay');
-            const bonusDrawer = document.getElementById('drawer-bonus');
             const attendanceDrawer = document.getElementById('drawer-attendance');
-            const backupDrawer = document.getElementById('drawer-backup');
             
             overlay.classList.remove('open');
-            bonusDrawer.classList.remove('open');
             attendanceDrawer.classList.remove('open');
-            backupDrawer.classList.remove('open');
         }
 
         // ==================== FETCH DATA ====================
@@ -581,7 +478,6 @@
             showToast("🔄 Mengambil data...");
             
             try {
-                // Fetch transactions
                 const trxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
                 const trxResponse = await fetch(trxUrl);
                 const trxResult = await trxResponse.json();
@@ -592,7 +488,6 @@
                     allTransactions = [];
                 }
                 
-                // Fetch attendance
                 const attUrl = `${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`;
                 const attResponse = await fetch(attUrl);
                 const attResult = await attResponse.json();
@@ -603,7 +498,6 @@
                     allAttendance = [];
                 }
                 
-                // Fetch users
                 const usersUrl = `${GAS_WEB_APP_URL}?action=get&type=users&t=${Date.now()}`;
                 const usersResponse = await fetch(usersUrl);
                 const usersResult = await usersResponse.json();
@@ -615,9 +509,9 @@
                 
                 console.log(`✅ Loaded: ${allTransactions.length} transactions, ${allAttendance.length} attendance, ${allUsers.length} users`);
                 applyFilters();
-                updateTotalBonusStat();
+                renderLeaderboard();
                 updateTotalAttendanceStat();
-                showToast(`✅ ${allTransactions.length} transaksi, ${allAttendance.length} absensi dimuat`);
+                showToast(`✅ ${allTransactions.length} transaksi dimuat`);
                 
             } catch (error) {
                 console.error('Error fetching:', error);
@@ -637,12 +531,219 @@
             }
         }
 
-        function updateUserSelectForBackup() {
-            const select = document.getElementById('backup-user-select');
-            if (select) {
-                select.innerHTML = '<option value="">-- Pilih User --</option>' + 
-                    allUsers.map(u => `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)} (${escapeHtml(u.username)})</option>`).join('');
+        // ==================== LEADERBOARD ====================
+        function getUserOmzetThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allTransactions
+                .filter(t => t.user === username)
+                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
+                .filter(t => (t.time || '').slice(0, 10) <= today)
+                .reduce((sum, t) => sum + (t.amount || 0), 0);
+        }
+
+        function getUserTransactionCountThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allTransactions
+                .filter(t => t.user === username)
+                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
+                .filter(t => (t.time || '').slice(0, 10) <= today)
+                .length;
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard-container');
+            const monthSpan = document.getElementById('leaderboard-month');
+            
+            if (!container) return;
+            
+            const currentMonth = getCurrentMonthYear();
+            monthSpan.innerText = currentMonth;
+            
+            if (allUsers.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-400 col-span-full">Belum ada data user</div>';
+                return;
             }
+            
+            // Hitung omzet setiap user
+            const userStats = allUsers.map(user => ({
+                ...user,
+                omzet: getUserOmzetThisMonth(user.username),
+                transaksi: getUserTransactionCountThisMonth(user.username)
+            }));
+            
+            // Urutkan dari omzet tertinggi
+            userStats.sort((a, b) => b.omzet - a.omzet);
+            
+            const topOmzet = userStats.length > 0 ? userStats[0].omzet : 0;
+            document.getElementById('stat-top-omzet').innerHTML = `Rp ${formatRupiah(topOmzet)}`;
+            
+            // Ambil 3 teratas untuk podium
+            const top3 = userStats.slice(0, 3);
+            const others = userStats.slice(3);
+            
+            let podiumHtml = '';
+            
+            // Tampilkan 3 teratas dengan style berbeda
+            top3.forEach((user, index) => {
+                let medalClass = '';
+                let medalIcon = '';
+                let medalColor = '';
+                
+                if (index === 0) {
+                    medalClass = 'gold';
+                    medalIcon = '<i class="fas fa-crown text-3xl mb-1"></i>';
+                    medalColor = 'text-yellow-500';
+                } else if (index === 1) {
+                    medalClass = 'silver';
+                    medalIcon = '<i class="fas fa-medal text-3xl mb-1"></i>';
+                    medalColor = 'text-gray-400';
+                } else {
+                    medalClass = 'bronze';
+                    medalIcon = '<i class="fas fa-medal text-3xl mb-1"></i>';
+                    medalColor = 'text-orange-600';
+                }
+                
+                podiumHtml += `
+                    <div class="${medalClass} rounded-2xl p-4 text-white text-center shadow-lg transform hover:scale-105 transition">
+                        ${medalIcon}
+                        <h3 class="font-bold text-lg mt-1">${escapeHtml(user.name)}</h3>
+                        <p class="text-xs opacity-80">@${escapeHtml(user.username)}</p>
+                        <div class="mt-3 bg-white/20 rounded-xl p-2">
+                            <p class="text-2xl font-black">Rp ${formatRupiah(user.omzet)}</p>
+                            <p class="text-[10px] opacity-80">${user.transaksi} transaksi</p>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            ${index === 0 ? '🏆 JUARA 1 🏆' : (index === 1 ? '🥈 Juara 2' : '🥉 Juara 3')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Tampilkan lainnya dalam grid kecil
+            let othersHtml = '';
+            if (others.length > 0) {
+                othersHtml = `
+                    <div class="col-span-full mt-4">
+                        <div class="text-center mb-2">
+                            <span class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full">Staff Lainnya</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            ${others.map(user => `
+                                <div class="bg-white rounded-xl p-2 text-center shadow-sm border">
+                                    <p class="font-bold text-gray-800 text-sm">${escapeHtml(user.name)}</p>
+                                    <p class="text-[10px] text-gray-400">${user.transaksi} trx</p>
+                                    <p class="text-xs font-bold text-green-600">Rp ${formatRupiah(user.omzet)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = podiumHtml + othersHtml;
+        }
+
+        // ==================== ABSENSI ====================
+        function getUserAttendanceThisMonth(username) {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            
+            return allAttendance
+                .filter(a => a.user === username)
+                .filter(a => {
+                    const attDate = (a.time || '').slice(0, 10);
+                    return attDate >= startOfMonth && attDate <= today;
+                });
+        }
+
+        function updateTotalAttendanceStat() {
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            const currentYear = parseInt(startOfMonth.slice(0, 4));
+            const currentMonth = parseInt(startOfMonth.slice(5, 7));
+            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
+            
+            const uniqueAttendanceDates = new Set();
+            for (const att of allAttendance) {
+                const attDate = (att.time || '').slice(0, 10);
+                if (attDate >= startOfMonth && attDate <= today) {
+                    uniqueAttendanceDates.add(attDate);
+                }
+            }
+            
+            document.getElementById('stat-total-absen')?.setAttribute('data-value', uniqueAttendanceDates.size);
+        }
+
+        function renderAttendanceList() {
+            const container = document.getElementById('attendance-list');
+            if (!container) return;
+            
+            const startOfMonth = getStartOfMonth();
+            const today = getTodayDate();
+            const currentYear = parseInt(startOfMonth.slice(0, 4));
+            const currentMonth = parseInt(startOfMonth.slice(5, 7));
+            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
+            
+            document.getElementById('attendance-period').innerText = getCurrentMonthYear();
+            document.getElementById('total-work-days').innerText = totalWorkDays;
+            
+            if (allUsers.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-400">Tidak ada data user</div>';
+                return;
+            }
+            
+            const attendanceData = allUsers.map(user => {
+                const attendanceRecords = getUserAttendanceThisMonth(user.username);
+                const hadirCount = attendanceRecords.length;
+                const persentase = totalWorkDays > 0 ? Math.round((hadirCount / totalWorkDays) * 100) : 0;
+                
+                return {
+                    ...user,
+                    hadirCount,
+                    persentase,
+                    attendanceRecords
+                };
+            });
+            
+            attendanceData.sort((a, b) => b.persentase - a.persentase);
+            
+            container.innerHTML = attendanceData.map(user => {
+                const statusColor = user.persentase >= 80 ? 'text-green-600' : (user.persentase >= 50 ? 'text-yellow-600' : 'text-red-600');
+                const statusBg = user.persentase >= 80 ? 'bg-green-50' : (user.persentase >= 50 ? 'bg-yellow-50' : 'bg-red-50');
+                
+                return `
+                    <div class="bg-white rounded-xl p-4 shadow-sm border ${statusBg}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
+                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold ${statusColor}">${user.persentase}%</p>
+                                <p class="text-[9px] text-gray-400">${user.hadirCount}/${totalWorkDays} hari</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: ${user.persentase}%"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${user.attendanceRecords.length > 0 ? 
+                                user.attendanceRecords.map(att => `
+                                    <span class="attendance-badge hadir">
+                                        <i class="fas fa-check-circle text-[8px]"></i>
+                                        ${(att.time || '').slice(5, 10)}
+                                    </span>
+                                `).join('') : 
+                                '<span class="attendance-badge tidak-hadir"><i class="fas fa-times-circle text-[8px]"></i> Belum pernah absen</span>'
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // ==================== FILTER FUNCTIONS ====================
@@ -740,482 +841,7 @@
             document.getElementById('stat-users').innerText = uniqueUsers.size;
         }
 
-        // ==================== BONUS ====================
-        function getUserOmzetThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allTransactions
-                .filter(t => t.user === username)
-                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
-                .filter(t => (t.time || '').slice(0, 10) <= today)
-                .reduce((sum, t) => sum + (t.amount || 0), 0);
-        }
-
-        function getUserTransactionCountThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allTransactions
-                .filter(t => t.user === username)
-                .filter(t => (t.time || '').slice(0, 10) >= startOfMonth)
-                .filter(t => (t.time || '').slice(0, 10) <= today)
-                .length;
-        }
-
-        function updateTotalBonusStat() {
-            let totalBonus = 0;
-            for (const user of allUsers) {
-                const omzet = getUserOmzetThisMonth(user.username);
-                totalBonus += calculateBonus(omzet);
-            }
-            document.getElementById('stat-total-bonus').innerHTML = `Rp ${formatRupiah(totalBonus)}`;
-        }
-
-        function renderBonusList() {
-            const container = document.getElementById('bonus-list');
-            if (!container) return;
-            
-            document.getElementById('bonus-period').innerText = getCurrentMonthYear();
-            
-            if (allUsers.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-gray-400">Tidak ada data user</div>';
-                return;
-            }
-            
-            const sortedUsers = [...allUsers].sort((a, b) => {
-                const omzetA = getUserOmzetThisMonth(a.username);
-                const omzetB = getUserOmzetThisMonth(b.username);
-                return omzetB - omzetA;
-            });
-            
-            container.innerHTML = sortedUsers.map(user => {
-                const omzet = getUserOmzetThisMonth(user.username);
-                const bonus = calculateBonus(omzet);
-                const trxCount = getUserTransactionCountThisMonth(user.username);
-                
-                return `
-                    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
-                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
-                            </div>
-                            <button onclick="backupSingleUser('${escapeHtml(user.username)}')" class="text-purple-500 hover:text-purple-700 p-2 rounded-lg active:bg-purple-100 btn-touch" title="Backup data user">
-                                <i class="fas fa-clipboard"></i>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mt-2">
-                            <div class="bg-white/50 rounded-lg p-2 text-center">
-                                <p class="text-[9px] text-gray-500">Omzet</p>
-                                <p class="text-sm font-bold text-green-600">Rp ${formatRupiah(omzet)}</p>
-                            </div>
-                            <div class="bg-white/50 rounded-lg p-2 text-center">
-                                <p class="text-[9px] text-gray-500">Transaksi</p>
-                                <p class="text-sm font-bold text-blue-600">${trxCount} x</p>
-                            </div>
-                        </div>
-                        <div class="mt-3 bg-yellow-100 rounded-lg p-2 text-center">
-                            <p class="text-[10px] text-yellow-700">🏆 Bonus Bulan Ini</p>
-                            <p class="text-base font-black text-orange-600">Rp ${formatRupiah(bonus)}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ==================== ABSENSI ====================
-        function getUserAttendanceThisMonth(username) {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            
-            return allAttendance
-                .filter(a => a.user === username)
-                .filter(a => {
-                    const attDate = (a.time || '').slice(0, 10);
-                    return attDate >= startOfMonth && attDate <= today;
-                });
-        }
-
-        function updateTotalAttendanceStat() {
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            const currentYear = parseInt(startOfMonth.slice(0, 4));
-            const currentMonth = parseInt(startOfMonth.slice(5, 7));
-            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
-            
-            const uniqueAttendanceDates = new Set();
-            for (const att of allAttendance) {
-                const attDate = (att.time || '').slice(0, 10);
-                if (attDate >= startOfMonth && attDate <= today) {
-                    uniqueAttendanceDates.add(attDate);
-                }
-            }
-            
-            document.getElementById('stat-total-absen').innerText = uniqueAttendanceDates.size;
-        }
-
-        function renderAttendanceList() {
-            const container = document.getElementById('attendance-list');
-            if (!container) return;
-            
-            const startOfMonth = getStartOfMonth();
-            const today = getTodayDate();
-            const currentYear = parseInt(startOfMonth.slice(0, 4));
-            const currentMonth = parseInt(startOfMonth.slice(5, 7));
-            const totalWorkDays = getDaysUntilToday(currentYear, currentMonth);
-            
-            document.getElementById('attendance-period').innerText = getCurrentMonthYear();
-            document.getElementById('total-work-days').innerText = totalWorkDays;
-            
-            if (allUsers.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-gray-400">Tidak ada data user</div>';
-                return;
-            }
-            
-            const attendanceData = allUsers.map(user => {
-                const attendanceRecords = getUserAttendanceThisMonth(user.username);
-                const hadirCount = attendanceRecords.length;
-                const persentase = totalWorkDays > 0 ? Math.round((hadirCount / totalWorkDays) * 100) : 0;
-                
-                return {
-                    ...user,
-                    hadirCount,
-                    persentase,
-                    attendanceRecords
-                };
-            });
-            
-            attendanceData.sort((a, b) => b.persentase - a.persentase);
-            
-            container.innerHTML = attendanceData.map(user => {
-                const statusColor = user.persentase >= 80 ? 'text-green-600' : (user.persentase >= 50 ? 'text-yellow-600' : 'text-red-600');
-                const statusBg = user.persentase >= 80 ? 'bg-green-50' : (user.persentase >= 50 ? 'bg-yellow-50' : 'bg-red-50');
-                
-                return `
-                    <div class="bg-white rounded-xl p-4 shadow-sm border ${statusBg}">
-                        <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <h3 class="font-bold text-gray-800">${escapeHtml(user.name)}</h3>
-                                <p class="text-[10px] text-gray-400">@${escapeHtml(user.username)}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-2xl font-bold ${statusColor}">${user.persentase}%</p>
-                                <p class="text-[9px] text-gray-400">${user.hadirCount}/${totalWorkDays} hari</p>
-                            </div>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: ${user.persentase}%"></div>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mt-2">
-                            ${user.attendanceRecords.length > 0 ? 
-                                user.attendanceRecords.map(att => `
-                                    <span class="attendance-badge hadir">
-                                        <i class="fas fa-check-circle text-[8px]"></i>
-                                        ${(att.time || '').slice(5, 10)}
-                                    </span>
-                                `).join('') : 
-                                '<span class="attendance-badge tidak-hadir"><i class="fas fa-times-circle text-[8px]"></i> Belum pernah absen</span>'
-                            }
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ==================== BACKUP FUNCTIONS ====================
-        async function backupSingleUser(username) {
-            const user = allUsers.find(u => u.username === username);
-            if (!user) {
-                showToast("User tidak ditemukan!", true);
-                return;
-            }
-            
-            const userTransactions = allTransactions.filter(t => t.user === username);
-            const userAttendance = allAttendance.filter(a => a.user === username);
-            
-            const backupData = {
-                version: "7.0",
-                timestamp: getWIBTime(),
-                data: {
-                    users: [{
-                        username: user.username,
-                        name: user.name,
-                        pin: user.pin,
-                        createdAt: getWIBTime()
-                    }],
-                    transactions: userTransactions.map(t => ({
-                        id: t.id,
-                        user: t.user,
-                        name: t.name,
-                        amount: t.amount,
-                        note: t.note,
-                        time: t.time
-                    })),
-                    attendance: userAttendance.map(a => ({
-                        id: a.id,
-                        user: a.user,
-                        name: a.name,
-                        time: a.time,
-                        lat: a.loc?.lat || null,
-                        lng: a.loc?.lng || null
-                    }))
-                }
-            };
-            
-            const jsonStr = JSON.stringify(backupData, null, 2);
-            
-            try {
-                await navigator.clipboard.writeText(jsonStr);
-                showToast(`✅ Backup ${user.name}: ${userTransactions.length} transaksi, ${userAttendance.length} absensi`);
-                closeDrawer();
-            } catch (err) {
-                const textarea = document.createElement('textarea');
-                textarea.value = jsonStr;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast(`✅ Backup ${user.name} disalin ke clipboard!`);
-                closeDrawer();
-            }
-        }
-
-        async function backupSelectedUser() {
-            const username = document.getElementById('backup-user-select').value;
-            const period = document.getElementById('backup-period').value;
-            
-            if (!username) {
-                showToast("Pilih user terlebih dahulu!", true);
-                return;
-            }
-            
-            const user = allUsers.find(u => u.username === username);
-            if (!user) {
-                showToast("User tidak ditemukan!", true);
-                return;
-            }
-            
-            let filteredTransactionsUser = [...allTransactions.filter(t => t.user === username)];
-            let filteredAttendanceUser = [...allAttendance.filter(a => a.user === username)];
-            const today = getTodayDate();
-            const startOfWeek = getStartOfWeek();
-            const startOfMonth = getStartOfMonth();
-            
-            if (period === 'today') {
-                filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) === today);
-                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) === today);
-            } else if (period === 'week') {
-                filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) >= startOfWeek);
-                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) >= startOfWeek);
-            } else if (period === 'month') {
-                filteredTransactionsUser = filteredTransactionsUser.filter(t => (t.time || '').slice(0, 10) >= startOfMonth);
-                filteredAttendanceUser = filteredAttendanceUser.filter(a => (a.time || '').slice(0, 10) >= startOfMonth);
-            }
-            
-            filteredTransactionsUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
-            filteredAttendanceUser.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
-            
-            const backupData = {
-                version: "7.0",
-                timestamp: getWIBTime(),
-                data: {
-                    users: [{
-                        username: user.username,
-                        name: user.name,
-                        pin: user.pin,
-                        createdAt: getWIBTime()
-                    }],
-                    transactions: filteredTransactionsUser.map(t => ({
-                        id: t.id,
-                        user: t.user,
-                        name: t.name,
-                        amount: t.amount,
-                        note: t.note,
-                        time: t.time
-                    })),
-                    attendance: filteredAttendanceUser.map(a => ({
-                        id: a.id,
-                        user: a.user,
-                        name: a.name,
-                        time: a.time,
-                        lat: a.loc?.lat || null,
-                        lng: a.loc?.lng || null
-                    }))
-                }
-            };
-            
-            const jsonStr = JSON.stringify(backupData, null, 2);
-            
-            try {
-                await navigator.clipboard.writeText(jsonStr);
-                const periodText = period === 'today' ? 'Hari Ini' : (period === 'week' ? 'Minggu Ini' : (period === 'month' ? 'Bulan Ini' : 'Semua Waktu'));
-                showToast(`✅ Backup ${user.name} (${periodText}): ${filteredTransactionsUser.length} transaksi, ${filteredAttendanceUser.length} absensi`);
-                closeDrawer();
-            } catch (err) {
-                const textarea = document.createElement('textarea');
-                textarea.value = jsonStr;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast(`✅ Backup ${user.name} disalin ke clipboard!`);
-                closeDrawer();
-            }
-        }
-
-        // ==================== RESTORE FUNCTIONS (CEGAH DUPLIKASI) ====================
-        async function restoreToSheet() {
-            let clipboardText = '';
-            try {
-                clipboardText = await navigator.clipboard.readText();
-            } catch (err) {
-                clipboardText = prompt("Paste data backup JSON di sini:");
-            }
-            
-            if (!clipboardText) {
-                showToast("Tidak ada data di clipboard!", true);
-                return;
-            }
-            
-            try {
-                const backupData = JSON.parse(clipboardText);
-                
-                let users = [];
-                let transactions = [];
-                let attendance = [];
-                
-                if (backupData.data && backupData.data.users) {
-                    users = backupData.data.users || [];
-                    transactions = backupData.data.transactions || [];
-                    attendance = backupData.data.attendance || [];
-                } else {
-                    showToast("Format backup tidak dikenali!", true);
-                    return;
-                }
-                
-                if (users.length === 0 && transactions.length === 0 && attendance.length === 0) {
-                    showToast("Tidak ada data untuk direstore!", true);
-                    return;
-                }
-                
-                showLoading(true, "Mengecek data yang sudah ada di sheet...");
-                
-                // Ambil data existing dari sheet
-                const existingTrxUrl = `${GAS_WEB_APP_URL}?action=get&type=transactions&t=${Date.now()}`;
-                const existingTrxRes = await fetch(existingTrxUrl);
-                const existingTrx = await existingTrxRes.json();
-                const existingIds = new Set((existingTrx.data || []).map(t => t.id));
-                
-                const existingAttUrl = `${GAS_WEB_APP_URL}?action=get&type=attendance&t=${Date.now()}`;
-                const existingAttRes = await fetch(existingAttUrl);
-                const existingAtt = await existingAttRes.json();
-                const existingAttIds = new Set((existingAtt.data || []).map(a => a.id));
-                
-                // Filter data yang BELUM ADA
-                const newTransactions = transactions.filter(t => !existingIds.has(t.id));
-                const newAttendance = attendance.filter(a => !existingAttIds.has(a.id));
-                const newUsers = users.filter(u => {
-                    return !allUsers.some(existingUser => existingUser.username === u.username);
-                });
-                
-                if (newUsers.length === 0 && newTransactions.length === 0 && newAttendance.length === 0) {
-                    showLoading(false);
-                    showToast("⚠️ Semua data sudah ada di sheet (tidak ada yang baru)", true);
-                    return;
-                }
-                
-                const confirmRestore = confirm(`⚠️ RESTORE DATA KE SHEET\n\nData yang akan dikirim (hanya yang BELUM ADA):\n- ${newUsers.length} user baru\n- ${newTransactions.length} transaksi baru\n- ${newAttendance.length} absensi baru\n\nLANJUTKAN?`);
-                
-                if (!confirmRestore) {
-                    showLoading(false);
-                    return;
-                }
-                
-                showLoading(true, `Mengirim ${newTransactions.length + newAttendance.length + newUsers.length} data ke sheet...`);
-                
-                let successCount = 0;
-                let failCount = 0;
-                
-                // Kirim users baru
-                for (const user of newUsers) {
-                    try {
-                        await fetch(GAS_WEB_APP_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: 'register',
-                                payload: {
-                                    username: user.username,
-                                    name: user.name,
-                                    pin: user.pin,
-                                    createdAt: user.createdAt || getWIBTime()
-                                }
-                            })
-                        });
-                        successCount++;
-                    } catch(e) { failCount++; }
-                }
-                
-                // Kirim transaksi baru
-                for (const trx of newTransactions) {
-                    try {
-                        await fetch(GAS_WEB_APP_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: 'transaction',
-                                payload: {
-                                    user: trx.user,
-                                    name: trx.name,
-                                    amount: trx.amount,
-                                    note: trx.note,
-                                    time: trx.time
-                                }
-                            })
-                        });
-                        successCount++;
-                        await new Promise(r => setTimeout(r, 50));
-                    } catch(e) { failCount++; }
-                }
-                
-                // Kirim absensi baru
-                for (const att of newAttendance) {
-                    try {
-                        await fetch(GAS_WEB_APP_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: 'attendance',
-                                payload: {
-                                    user: att.user,
-                                    name: att.name,
-                                    time: att.time,
-                                    loc: att.lat ? { lat: att.lat, lng: att.lng } : null
-                                }
-                            })
-                        });
-                        successCount++;
-                        await new Promise(r => setTimeout(r, 50));
-                    } catch(e) { failCount++; }
-                }
-                
-                showLoading(false);
-                showToast(`✅ Restore selesai! ${successCount} data baru ditambahkan, ${failCount} gagal`);
-                
-                await fetchAllData();
-                
-            } catch (error) {
-                showLoading(false);
-                console.error('Restore error:', error);
-                showToast("❌ Gagal restore: " + error.message, true);
-            }
-        }
-
-        // ==================== CRUD OPERATIONS (LANGSUNG KE SHEET) ====================
+        // ==================== CRUD OPERATIONS ====================
         function showAddModal() {
             document.getElementById('modal-title').innerText = 'Tambah Transaksi';
             document.getElementById('edit-id').value = '';
@@ -1296,7 +922,6 @@
             
             try {
                 if (id) {
-                    // Delete old
                     await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -1307,7 +932,6 @@
                         })
                     });
                     
-                    // Add new
                     await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -1502,6 +1126,21 @@
             document.getElementById('search-note').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
+            
+            // Tambahkan tombol absensi di header (opsional)
+            const headerDiv = document.querySelector('.bg-gradient-to-r');
+            if (headerDiv && !document.getElementById('attendance-btn')) {
+                const attBtn = document.createElement('button');
+                attBtn.id = 'attendance-btn';
+                attBtn.innerHTML = '<i class="fas fa-calendar-check mr-1"></i> Absensi';
+                attBtn.className = 'bg-green-500/80 hover:bg-green-500 active:bg-green-600 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition btn-touch';
+                attBtn.onclick = () => openDrawer('attendance');
+                
+                const buttonContainer = headerDiv.querySelector('.flex.gap-2');
+                if (buttonContainer) {
+                    buttonContainer.appendChild(attBtn);
+                }
+            }
         }
         
         init();
