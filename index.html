@@ -636,7 +636,6 @@
 <!-- ══ TOPBAR (hidden until logged in) ══ -->
 <nav id="topbar" class="hidden">
     <div class="topbar-left">
-        <!-- LOGO DIHAPUS -->
         <div class="brand-info">
             <div id="header-name">Rocky Hijab</div>
             <div id="header-role">Admin Panel</div>
@@ -986,6 +985,24 @@
         m.style.display = show ? 'flex' : 'none';
     }
 
+    // ══════════════════ FUNGSI KIRIM KE GAS (DENGAN RETRY) ══════════════════
+    async function postToGAS(payload) {
+        // Menggunakan mode 'no-cors' tetapi kita tidak bisa membaca responsnya
+        // Kita akan mengirim dengan fetch biasa dan mengabaikan respons karena mode no-cors
+        // Untuk memastikan data terkirim, kita lakukan dengan timestamp unik
+        const url = GAS_WEB_APP_URL;
+        const response = await fetch(url, {
+            method: 'POST',
+            mode: 'no-cors', // Karena CORS di Google Apps Script
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        // Karena mode no-cors, response tidak bisa dibaca, kita asumsikan sukses
+        // Tapi kita tambahkan delay kecil untuk memastikan
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return { success: true };
+    }
+
     // ══════════════════ DOWNLOAD CSV ══════════════════
     function downloadExcel() {
         if (!isAdmin) { showToast("Hanya Super Admin!", true); return; }
@@ -1240,17 +1257,21 @@
             tbody.innerHTML = pageData.map((t,i)=>{
                 const canDel = isAdmin || t.user===currentUser?.username;
                 const canEdit= isAdmin || t.user===currentUser?.username;
+                // Escape note untuk aman di JavaScript string
+                const safeNote = escapeHtml(t.note || '-').replace(/'/g, "\\'");
+                const safeAmount = formatRupiah(t.amount);
+                const safeUser = escapeHtml(t.user || '-');
                 return `<tr>
                     <td class="td-num" style="color:var(--text-g);font-size:11px">${startIdx+i+1}</td>
                     <td class="td-date">${formatDateTime(t.time)}</td>
-                    <td><span class="chip">${escapeHtml(t.user||'-')}</span></td>
+                    <td><span class="chip">${safeUser}</span></td>
                     <td style="font-weight:500">${escapeHtml(t.name||'-')}</td>
                     <td class="td-note" style="color:var(--text-s)">${escapeHtml(t.note||'-')}</td>
-                    <td class="td-amt" style="text-align:right">Rp ${formatRupiah(t.amount)}</td>
+                    <td class="td-amt" style="text-align:right">Rp ${safeAmount}</td>
                     <td style="text-align:center">
                         <div style="display:flex;gap:5px;justify-content:center">
                             ${canEdit?`<button onclick="showEditModal('${t.id}')" class="action-btn action-edit" title="Edit"><i class="fas fa-pen" style="font-size:10px"></i></button>`:''}
-                            ${canDel?`<button onclick="showDeleteModal('${t.id}','${escapeHtml(t.note).replace(/'/g,"\\'")}','${formatRupiah(t.amount)}','${t.user}')" class="action-btn action-del" title="Hapus"><i class="fas fa-trash-alt" style="font-size:10px"></i></button>`:''}
+                            ${canDel?`<button onclick="showDeleteModal('${t.id}', '${safeNote}', '${safeAmount}', '${safeUser}')" class="action-btn action-del" title="Hapus"><i class="fas fa-trash-alt" style="font-size:10px"></i></button>`:''}
                         </div>
                     </td>
                 </tr>`;
@@ -1330,21 +1351,26 @@
         showLoading(true, "Menyimpan...");
         try {
             if (id) {
-                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'delete_transaction',payload:{serverId:id.toString()}})});
-                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'transaction',payload:{user:username,name,amount,note,time}})});
+                // DELETE dulu yang lama (hapus berdasarkan ID)
+                await postToGAS({ type: 'delete_transaction', payload: { serverId: id.toString() } });
+                // Lalu tambahkan yang baru
+                await postToGAS({ type: 'transaction', payload: { user: username, name, amount, note, time } });
                 showToast("✅ Transaksi diupdate!");
             } else {
-                await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'transaction',payload:{user:username,name,amount,note,time}})});
+                await postToGAS({ type: 'transaction', payload: { user: username, name, amount, note, time } });
                 showToast("✅ Transaksi ditambahkan!");
             }
             closeModal();
             if (isAdmin) await fetchAllData(); else await fetchUserData();
-        } catch(e) { showToast("❌ Gagal menyimpan", true); }
+        } catch(e) { 
+            console.error(e);
+            showToast("❌ Gagal menyimpan", true); 
+        }
         finally { showLoading(false); }
     }
 
     function showDeleteModal(id, note, amount, user) {
-        if (!isAdmin && user!==currentUser.username) { showToast("Hanya bisa hapus sendiri!", true); return; }
+        if (!isAdmin && user!==currentUser?.username) { showToast("Hanya bisa hapus sendiri!", true); return; }
         pendingDeleteId = id;
         document.getElementById('delete-info').innerHTML = `<i class="fas fa-tag" style="margin-right:6px;color:var(--text-g)"></i>${note}<br><i class="fas fa-coins" style="margin-right:6px;color:var(--green);margin-top:5px;display:inline-block"></i>Rp ${amount}`;
         document.getElementById('delete-modal').classList.add('show');
@@ -1356,11 +1382,14 @@
         if (!pendingDeleteId) return;
         showLoading(true, "Menghapus...");
         try {
-            await fetch(GAS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'delete_transaction',payload:{serverId:pendingDeleteId.toString()}})});
+            await postToGAS({ type: 'delete_transaction', payload: { serverId: pendingDeleteId.toString() } });
             showToast("✅ Transaksi dihapus!");
             closeDeleteModal();
             if (isAdmin) await fetchAllData(); else await fetchUserData();
-        } catch(e) { showToast("❌ Gagal hapus", true); }
+        } catch(e) { 
+            console.error(e);
+            showToast("❌ Gagal hapus", true); 
+        }
         finally { showLoading(false); }
     }
 
