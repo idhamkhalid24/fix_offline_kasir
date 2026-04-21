@@ -533,6 +533,53 @@
         .progress-track { width: 100%; height: 4px; background: var(--surface); border-radius: 4px; margin: 8px 0 6px; overflow: hidden; }
         .progress-fill { height: 100%; border-radius: 4px; background: var(--green); transition: width 0.5s ease; }
 
+        .att-filter-grid {
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:8px;
+            margin-bottom:12px;
+        }
+        .att-filter-grid .full { grid-column: 1 / -1; }
+        .att-sublist {
+            margin-top: 10px;
+            display:flex;
+            flex-direction:column;
+            gap:6px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+        .att-log-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            padding:8px 10px;
+            border-radius:10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .att-log-date {
+            font-size:11px;
+            font-weight:600;
+            color: var(--text);
+        }
+        .att-log-time {
+            font-family:'JetBrains Mono', monospace;
+            font-size:11px;
+            color: var(--text-s);
+            white-space:nowrap;
+        }
+        .att-empty {
+            text-align:center;
+            padding:20px 12px;
+            color:var(--text-g);
+            font-size:12px;
+            border:1px dashed var(--border);
+            border-radius:12px;
+            background: var(--surface);
+        }
+
         /* ══════════════════════════════════════
            TOAST
         ══════════════════════════════════════ */
@@ -801,10 +848,24 @@
         <button onclick="closeDrawer()" class="modal-close"><i class="fas fa-times"></i></button>
     </div>
     <div style="padding:14px 18px 32px">
-        <div style="text-align:center;margin-bottom:16px">
+        <div style="text-align:center;margin-bottom:14px">
             <p style="font-size:11px;color:var(--text-s)">Periode: <strong id="attendance-period">Bulan Ini</strong></p>
             <p style="font-size:10px;color:var(--text-g);margin-top:2px">Total hari kerja: <span id="total-work-days">0</span> hari</p>
         </div>
+
+        <div class="att-filter-grid">
+            <select id="attendance-filter-period" onchange="applyAttendanceFilters()" class="g-select full">
+                <option value="today">📅 Hari Ini</option>
+                <option value="week">📊 Minggu Ini</option>
+                <option value="month" selected>📈 Bulan Ini</option>
+                <option value="all">🌐 Semua</option>
+                <option value="custom">🎯 Custom</option>
+            </select>
+            <input type="date" id="attendance-date-start" class="g-input" onchange="applyAttendanceFilters()">
+            <input type="date" id="attendance-date-end" class="g-input" onchange="applyAttendanceFilters()">
+            <input type="text" id="attendance-search-user" class="g-input full" placeholder="Cari username / nama staff..." oninput="applyAttendanceFilters()">
+        </div>
+
         <div id="attendance-list">
             <div style="text-align:center;padding:24px;color:var(--text-g)">Memuat data absensi...</div>
         </div>
@@ -876,7 +937,7 @@
 
 <script>
     // ══════════════════ KONFIGURASI ══════════════════
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYqSjIKY_vS-bjIrpemWOtu0_ZgA5AVBt6JEeGulmWkBXRJJE0jEoPsx4YSr0w8yUK/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwhHGVQ3RpgCx6FIosopNHO6uE3UAh6BGOFOxd6Eo65levqmbqeLi_oDAqu-Aqbbx1_Xw/exec";
     const SUPER_ADMIN = { username: "admin", pin: "170845" };
 
     // State
@@ -888,6 +949,7 @@
     let searchUsername = '', searchNote = '';
     let pendingDeleteId = null;
     let currentUser = null, isAdmin = false;
+    let attendanceFilter = { period: 'month', start: null, end: null, query: '' };
 
     // ══════════════════ THEME ══════════════════
     const getTheme = () => localStorage.getItem('admin-theme') || 'light';
@@ -902,42 +964,57 @@
     (function(){ applyTheme(getTheme()); })();
 
     // ══════════════════ HELPERS ZONA WAKTU WIB (UTC+7) ══════════════════
-    function getWIBDate(date = new Date()) {
-        return new Date(date.getTime() + (7 * 60 * 60 * 1000));
+    function getJakartaParts(date = new Date()) {
+        return new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).formatToParts(date).reduce((acc, part) => {
+            if (part.type !== 'literal') acc[part.type] = part.value;
+            return acc;
+        }, {});
     }
 
-    function getTodayDate() { 
-        const wib = getWIBDate();
-        return wib.toISOString().slice(0,10);
+    function getTodayDate() {
+        const p = getJakartaParts();
+        return `${p.year}-${p.month}-${p.day}`;
     }
     
     function getYesterdayDate() {
-        const wib = getWIBDate();
-        wib.setDate(wib.getDate() - 1);
-        return wib.toISOString().slice(0,10);
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        const p = getJakartaParts(d);
+        return `${p.year}-${p.month}-${p.day}`;
     }
     
-    function getStartOfWeek() { 
-        const wib = getWIBDate();
-        const day = wib.getDay();
-        const diff = wib.getDate() - day + (day === 0 ? -6 : 1);
-        const m = new Date(wib);
-        m.setDate(diff);
-        return m.toISOString().slice(0,10);
+    function getStartOfWeek() {
+        const now = new Date();
+        const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', weekday: 'short' }).format(now);
+        const map = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+        const offset = map[weekday] ?? 0;
+        const d = new Date(now);
+        d.setDate(d.getDate() - offset);
+        const p = getJakartaParts(d);
+        return `${p.year}-${p.month}-${p.day}`;
     }
     
-    function getStartOfMonth() { 
-        const wib = getWIBDate();
-        return `${wib.getFullYear()}-${String(wib.getMonth()+1).padStart(2,'0')}-01`;
+    function getStartOfMonth() {
+        const p = getJakartaParts();
+        return `${p.year}-${p.month}-01`;
     }
     
-    function getCurrentMonthYear() { 
-        const wib = getWIBDate();
+    function getCurrentMonthYear() {
+        const p = getJakartaParts();
         const b = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-        return `${b[wib.getMonth()]} ${wib.getFullYear()}`;
+        return `${b[parseInt(p.month,10)-1]} ${p.year}`;
     }
     
-    function getDaysUntilToday(y, m) { 
+    function getDaysUntilToday(y, m) {
         const today = getTodayDate();
         const td = parseInt(today.split('-')[2]);
         const cy = parseInt(today.split('-')[0]);
@@ -945,27 +1022,37 @@
         return (y===cy && m===cm) ? td : new Date(y, m, 0).getDate();
     }
     
-    function getWIBForInput() { 
-        const wib = getWIBDate();
-        return wib.toISOString().slice(0,16);
+    function getWIBForInput() {
+        const p = getJakartaParts();
+        return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
     }
     
-    function getWIBTime() { 
-        const wib = getWIBDate();
-        return wib.toISOString().replace('T',' ').slice(0,19);
+    function getWIBTime(date = new Date()) {
+        const p = getJakartaParts(date);
+        return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
     }
 
     function formatRupiah(n) { if (!n && n !== 0) return '0'; return new Intl.NumberFormat('id-ID').format(n); }
 
+    function normalizeStoredWIB(s) {
+        if (!s) return '';
+        const raw = String(s).trim();
+        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(raw)) return raw;
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return raw;
+        return getWIBTime(d);
+    }
     function formatDateTime(s) {
-        if (!s) return '-';
-        if (s.includes(' ')) { const [d, t] = s.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m} ${t.slice(0,5)}`; }
-        return s;
+        const raw = normalizeStoredWIB(s);
+        if (!raw) return '-';
+        if (raw.includes(' ')) { const [d, t] = raw.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m} ${t.slice(0,5)}`; }
+        return raw;
     }
     function formatFullDate(s) {
-        if (!s) return '-';
-        if (s.includes(' ')) { const [d, t] = s.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y} ${t.slice(0,5)}`; }
-        return s;
+        const raw = normalizeStoredWIB(s);
+        if (!raw) return '-';
+        if (raw.includes(' ')) { const [d, t] = raw.split(' '); const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y} ${t.slice(0,5)}`; }
+        return raw;
     }
     function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 
@@ -1398,7 +1485,19 @@
     // ══════════════════ DRAWER ABSENSI ══════════════════
     function openDrawer(type) {
         if (!isAdmin) return;
-        renderAttendanceList();
+        if (type === 'attendance') {
+            const periodEl = document.getElementById('attendance-filter-period');
+            const startEl = document.getElementById('attendance-date-start');
+            const endEl = document.getElementById('attendance-date-end');
+            const queryEl = document.getElementById('attendance-search-user');
+            if (periodEl) periodEl.value = attendanceFilter.period || 'month';
+            if (startEl) startEl.value = attendanceFilter.start || getStartOfMonth();
+            if (endEl) endEl.value = attendanceFilter.end || getTodayDate();
+            if (queryEl) queryEl.value = attendanceFilter.query || '';
+            applyAttendanceFilters();
+        } else {
+            renderAttendanceList();
+        }
         document.getElementById('drawer-overlay').classList.add('open');
         document.getElementById(`drawer-${type}`).classList.add('open');
     }
@@ -1407,47 +1506,206 @@
         document.getElementById('drawer-attendance').classList.remove('open');
     }
 
+    function getAttendanceRangeInfo(period, startOverride = null, endOverride = null) {
+        const today = getTodayDate();
+        let start = today;
+        let end = today;
+        let label = 'Hari Ini';
+
+        if (period === 'today') {
+            start = today;
+            end = today;
+            label = `Hari Ini (${today})`;
+        } else if (period === 'week') {
+            start = getStartOfWeek();
+            end = today;
+            label = `Minggu Ini (${start} s/d ${end})`;
+        } else if (period === 'month') {
+            start = getStartOfMonth();
+            end = today;
+            label = getCurrentMonthYear();
+        } else if (period === 'all') {
+            const dates = allAttendance.map(a => normalizeStoredWIB(a.time).slice(0,10)).filter(Boolean).sort();
+            start = dates[0] || today;
+            end = dates[dates.length - 1] || today;
+            label = 'Semua Data';
+        } else if (period === 'custom') {
+            start = startOverride || today;
+            end = endOverride || today;
+            if (start > end) [start, end] = [end, start];
+            label = `Custom (${start} s/d ${end})`;
+        }
+
+        const totalDays = Math.max(1, Math.floor((new Date(end + 'T00:00:00') - new Date(start + 'T00:00:00')) / 86400000) + 1);
+        return { start, end, label, totalDays };
+    }
+
+    function getAttendanceFilteredRecords(username, range) {
+        return allAttendance
+            .filter(a => a.user === username)
+            .map(a => ({ ...a, normalizedTime: normalizeStoredWIB(a.time) }))
+            .filter(a => {
+                const d = (a.normalizedTime || '').slice(0,10);
+                return d && d >= range.start && d <= range.end;
+            })
+            .sort((a,b) => (b.normalizedTime || '').localeCompare(a.normalizedTime || ''));
+    }
+
+    function applyAttendanceFilters() {
+        const periodEl = document.getElementById('attendance-filter-period');
+        const startEl = document.getElementById('attendance-date-start');
+        const endEl = document.getElementById('attendance-date-end');
+        const queryEl = document.getElementById('attendance-search-user');
+        if (!periodEl || !startEl || !endEl || !queryEl) return;
+
+        attendanceFilter.period = periodEl.value || 'month';
+        attendanceFilter.start = startEl.value || null;
+        attendanceFilter.end = endEl.value || null;
+        attendanceFilter.query = (queryEl.value || '').trim().toLowerCase();
+
+        const isCustom = attendanceFilter.period === 'custom';
+        startEl.style.display = isCustom ? '' : 'none';
+        endEl.style.display = isCustom ? '' : 'none';
+
+        renderAttendanceList();
+    }
+
     function getUserAttendanceThisMonth(username) {
-        const start=getStartOfMonth(), today=getTodayDate();
-        return allAttendance.filter(a=>a.user===username).filter(a=>{const d=(a.time||'').slice(0,10);return d>=start&&d<=today;});
+        const range = getAttendanceRangeInfo('month');
+        return getAttendanceFilteredRecords(username, range);
+    }
+
+    function buildAttendanceUsers() {
+        const map = new Map();
+
+        allUsers.forEach(u => {
+            const username = (u.username || '').toString();
+            if (!username) return;
+            map.set(username, {
+                username,
+                name: u.name || username
+            });
+        });
+
+        allAttendance.forEach(a => {
+            const username = (a.user || '').toString();
+            if (!username) return;
+            if (!map.has(username)) {
+                map.set(username, {
+                    username,
+                    name: a.name || username
+                });
+            }
+        });
+
+        return Array.from(map.values());
     }
 
     function renderAttendanceList() {
         const container = document.getElementById('attendance-list'); if(!container) return;
-        const start=getStartOfMonth(), today=getTodayDate();
-        const cy=parseInt(start.slice(0,4)), cm=parseInt(start.slice(5,7));
-        const totalDays = getDaysUntilToday(cy, cm);
 
-        document.getElementById('attendance-period').innerText = getCurrentMonthYear();
-        document.getElementById('total-work-days').innerText = totalDays;
+        const periodEl = document.getElementById('attendance-filter-period');
+        const startEl = document.getElementById('attendance-date-start');
+        const endEl = document.getElementById('attendance-date-end');
+        const queryEl = document.getElementById('attendance-search-user');
 
-        if (!allUsers.length) { container.innerHTML='<div style="text-align:center;padding:16px;color:var(--text-g);font-size:12px">Tidak ada data user</div>'; return; }
+        if (periodEl && !periodEl.value) periodEl.value = attendanceFilter.period || 'month';
+        if (startEl && attendanceFilter.start) startEl.value = attendanceFilter.start;
+        if (endEl && attendanceFilter.end) endEl.value = attendanceFilter.end;
+        if (queryEl && attendanceFilter.query && queryEl.value !== attendanceFilter.query) queryEl.value = attendanceFilter.query;
 
-        const data = allUsers.map(u => {
-            const recs = getUserAttendanceThisMonth(u.username);
-            const hadir = recs.length;
-            const pct = totalDays>0?Math.round((hadir/totalDays)*100):0;
-            return {...u, hadir, pct, recs};
-        }).sort((a,b)=>b.pct-a.pct);
+        const detailRange = getAttendanceRangeInfo(attendanceFilter.period, attendanceFilter.start, attendanceFilter.end);
+        const monthRange = getAttendanceRangeInfo('month');
+        const todayRange = getAttendanceRangeInfo('today');
 
-        container.innerHTML = data.map(u => {
+        document.getElementById('attendance-period').innerText = `${detailRange.label} · Rekap bulan ini`;
+        document.getElementById('total-work-days').innerText = monthRange.totalDays;
+
+        const query = attendanceFilter.query || '';
+        const users = buildAttendanceUsers()
+            .filter(u => {
+                if (!query) return true;
+                return (u.username || '').toLowerCase().includes(query) || (u.name || '').toLowerCase().includes(query);
+            })
+            .map(u => {
+                const todayRecs = getAttendanceFilteredRecords(u.username, todayRange).sort((a,b) => (a.normalizedTime || '').localeCompare(b.normalizedTime || ''));
+                const monthRecs = getAttendanceFilteredRecords(u.username, monthRange);
+                const detailRecs = getAttendanceFilteredRecords(u.username, detailRange);
+                const hadirDays = new Set(monthRecs.map(a => (a.normalizedTime || '').slice(0,10))).size;
+                const tidakHadir = Math.max(0, monthRange.totalDays - hadirDays);
+                const pct = monthRange.totalDays > 0 ? Math.round((hadirDays / monthRange.totalDays) * 100) : 0;
+                return { ...u, todayRecs, monthRecs, detailRecs, hadirDays, tidakHadir, pct };
+            })
+            .filter(u => {
+                if (query) return true;
+                return u.todayRecs.length > 0 || u.monthRecs.length > 0 || u.detailRecs.length > 0;
+            })
+            .sort((a,b) => {
+                if (b.todayRecs.length !== a.todayRecs.length) return b.todayRecs.length - a.todayRecs.length;
+                if (b.hadirDays !== a.hadirDays) return b.hadirDays - a.hadirDays;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+
+        if (!users.length) {
+            container.innerHTML = '<div class="att-empty">Tidak ada data absensi sesuai filter</div>';
+            return;
+        }
+
+        container.innerHTML = users.map(u => {
             const color = u.pct>=80?'var(--green)':u.pct>=50?'var(--amber)':'var(--red)';
+            const statusToday = u.todayRecs.length > 0;
+            const jamToday = statusToday
+                ? u.todayRecs.map(a => {
+                    const time = a.normalizedTime || normalizeStoredWIB(a.time);
+                    const parts = time.split(' ');
+                    return parts[1] ? parts[1].slice(0,5) : '-';
+                }).join(', ')
+                : '-';
+
             return `<div class="att-card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                    <div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px">
+                    <div style="min-width:0">
                         <p style="font-size:13px;font-weight:700">${escapeHtml(u.name)}</p>
                         <p style="font-size:10px;color:var(--text-g);margin-top:1px">@${escapeHtml(u.username)}</p>
                     </div>
-                    <div style="text-align:right">
-                        <p style="font-size:18px;font-weight:800;color:${color};font-family:'JetBrains Mono',monospace">${u.pct}%</p>
-                        <p style="font-size:9px;color:var(--text-g);font-family:'JetBrains Mono',monospace">${u.hadir}/${totalDays}</p>
+                    <div style="text-align:right;flex-shrink:0">
+                        <span class="att-badge ${statusToday ? 'att-in' : 'att-out'}">${statusToday ? 'Sudah Absen' : 'Belum Absen'}</span>
+                        <p style="font-size:9px;color:var(--text-g);margin-top:6px">Jam hari ini: <strong style="color:var(--text)">${jamToday}</strong></p>
                     </div>
                 </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+                    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+                        <div style="font-size:9px;color:var(--text-g);text-transform:uppercase;font-weight:700;letter-spacing:.04em">Hadir Bulan Ini</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace;margin-top:4px">${u.hadirDays}</div>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+                        <div style="font-size:9px;color:var(--text-g);text-transform:uppercase;font-weight:700;letter-spacing:.04em">Tidak Hadir</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--red);font-family:'JetBrains Mono',monospace;margin-top:4px">${u.tidakHadir}</div>
+                    </div>
+                </div>
+
                 <div class="progress-track"><div class="progress-fill" style="width:${u.pct}%;background:${color}"></div></div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-                    ${u.recs.length>0
-                        ? u.recs.slice(0,10).map(a=>`<span class="att-badge att-in">${(a.time||'').slice(5,10)}</span>`).join('')
-                        : '<span style="font-size:9.5px;color:var(--text-g)">Belum absen</span>'}
+                <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px">
+                    <div style="font-size:10px;color:var(--text-s)">Persentase hadir bulan ini</div>
+                    <div style="font-size:10px;font-weight:700;color:${color};font-family:'JetBrains Mono',monospace">${u.pct}% · ${u.hadirDays}/${monthRange.totalDays} hari</div>
+                </div>
+
+                <div style="font-size:10px;font-weight:700;color:var(--text-s);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Detail Absen (${detailRange.label})</div>
+                <div class="att-sublist">
+                    ${u.detailRecs.length > 0
+                        ? u.detailRecs.map(a => {
+                            const time = a.normalizedTime || normalizeStoredWIB(a.time);
+                            const [datePart, timePart=''] = time.split(' ');
+                            return `<div class="att-log-row">
+                                <div>
+                                    <div class="att-log-date">${datePart || '-'}</div>
+                                    <div style="font-size:9px;color:var(--text-g);margin-top:2px">${escapeHtml(a.name || u.name)}</div>
+                                </div>
+                                <div class="att-log-time">${timePart.slice(0,5) || '-'}</div>
+                            </div>`;
+                        }).join('')
+                        : '<div class="att-empty" style="padding:12px;font-size:11px">Belum ada data pada filter ini</div>'}
                 </div>
             </div>`;
         }).join('');
