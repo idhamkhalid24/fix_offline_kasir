@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Admin — Rocky Hijab</title>
+    <title>Admin — Rocky Hijab + Bonus Staff</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ══════════════════════════════════════
-           THEME VARIABLES
-        ══════════════════════════════════════ */
         :root {
             --tr: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
@@ -35,6 +32,8 @@
             --amber-d:   rgba(232,150,10,0.1);
             --purple:    #7c3aed;
             --purple-d:  rgba(124,58,237,0.1);
+            --gold:      #d4af37;
+            --gold-d:    rgba(212,175,55,0.1);
             --nav:       rgba(255,255,255,0.95);
             --shadow:    0 4px 24px rgba(0,0,0,0.08);
             --shadow-lg: 0 12px 48px rgba(0,0,0,0.14);
@@ -62,6 +61,8 @@
             --amber-d:   rgba(255,196,107,0.1);
             --purple:    #a78bfa;
             --purple-d:  rgba(167,139,250,0.1);
+            --gold:      #f5d742;
+            --gold-d:    rgba(245,215,66,0.1);
             --nav:       rgba(9,13,24,0.95);
             --shadow:    0 4px 24px rgba(0,0,0,0.4);
             --shadow-lg: 0 12px 48px rgba(0,0,0,0.6);
@@ -69,9 +70,6 @@
             --row-h:     rgba(255,255,255,0.025);
         }
 
-        /* ══════════════════════════════════════
-           BASE
-        ══════════════════════════════════════ */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
@@ -92,9 +90,6 @@
         input[type=number] { -moz-appearance: textfield; }
         -webkit-overflow-scrolling: touch;
 
-        /* ══════════════════════════════════════
-           LAYOUT - FIXED CENTERING & FAB SPACING
-        ══════════════════════════════════════ */
         #app-container {
             max-width: 1280px;
             margin: 0 auto;
@@ -112,9 +107,6 @@
             max-width: 1280px;
         }
 
-        /* ══════════════════════════════════════
-           TOPBAR - DIPERBAIKI
-        ══════════════════════════════════════ */
         #topbar {
             position: sticky;
             top: 0;
@@ -136,10 +128,6 @@
             gap: 10px;
             flex-shrink: 1;
             min-width: 0;
-        }
-        /* Logo dihapus - tidak digunakan lagi */
-        .topbar-logo {
-            display: none;
         }
         .brand-info {
             display: flex;
@@ -172,20 +160,6 @@
             flex-shrink: 0;
         }
 
-        /* ══════════════════════════════════════
-           ROLE BADGE
-        ══════════════════════════════════════ */
-        .role-pill {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 10px; border-radius: 100px;
-            font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
-        }
-        .role-admin { background: var(--red-d); color: var(--red); border: 1px solid rgba(232,69,69,0.2); }
-        .role-user  { background: var(--accent-d); color: var(--accent); border: 1px solid rgba(91,143,255,0.2); }
-
-        /* ══════════════════════════════════════
-           BUTTONS
-        ══════════════════════════════════════ */
         .btn {
             border: none; cursor: pointer;
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -216,7 +190,6 @@
         }
         .theme-toggle:active { transform: scale(0.92); }
 
-        /* FAB - DIPERBAIKI: Tidak menghalangi konten */
         .fab {
             position: fixed; 
             bottom: 24px; 
@@ -253,7 +226,6 @@
             .bottom-spacer {
                 height: 70px;
             }
-            /* Perbaikan header di mobile */
             #header-name {
                 font-size: 12px;
             }
@@ -276,57 +248,168 @@
         .fab:hover { transform: scale(1.06); }
         .fab:active { transform: scale(0.95); }
 
-        /* ══════════════════════════════════════
-           CARDS
-        ══════════════════════════════════════ */
-        .card {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            transition: var(--tr);
+        /* DASHBOARD CARDS STYLE */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 640px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
 
-        /* ══════════════════════════════════════
-           STAT CARDS
-        ══════════════════════════════════════ */
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        @media (max-width: 480px) { .stat-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
+        .leaderboard-card {
+            background: linear-gradient(135deg, #1a2a52 0%, #0d1a38 100%);
+            border: 1px solid rgba(91,143,255,0.15);
+            border-radius: 16px;
+            padding: 14px 16px;
+        }
+        [data-theme="light"] .leaderboard-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+
+        .bonus-card {
+            background: linear-gradient(135deg, #2a1a3a 0%, #1a0d2a 100%);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 16px;
+            padding: 14px 16px;
+            position: relative;
+        }
+        [data-theme="light"] .bonus-card {
+            background: linear-gradient(135deg, #4c1d95 0%, #3b0764 100%);
+        }
+
+        .card-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .leaderboard-card .card-title { color: rgba(255,220,100,0.9); }
+        .bonus-card .card-title { color: rgba(255,215,0,0.9); }
+
+        .card-month {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .top3-container {
+            display: flex;
+            gap: 8px;
+        }
+        .top3-item {
+            flex: 1;
+            text-align: center;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 8px 6px;
+        }
+        .top3-medal { font-size: 20px; line-height: 1; margin-bottom: 4px; }
+        .top3-name { font-size: 10px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .top3-value { font-size: 9px; color: rgba(255,220,100,0.8); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+        .top3-bonus { font-size: 9px; color: rgba(255,215,0,0.9); margin-top: 2px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+        /* Tombol Selengkapnya */
+        .btn-more {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,215,0,0.9);
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-more:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Modal untuk daftar semua bonus */
+        .modal-bonus-list {
+            max-width: 500px;
+        }
+        .bonus-list-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .bonus-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .bonus-list-item:last-child {
+            border-bottom: none;
+        }
+        .bonus-list-rank {
+            width: 40px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .bonus-list-name {
+            flex: 2;
+            font-weight: 500;
+        }
+        .bonus-list-omzet {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--green);
+            text-align: right;
+        }
+        .bonus-list-bonus {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold);
+            text-align: right;
+        }
+        .bonus-list-header {
+            background: var(--surface);
+            padding: 8px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-g);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+        }
+        .bonus-list-header .rank { width: 40px; }
+        .bonus-list-header .name { flex: 2; }
+        .bonus-list-header .omzet { flex: 1; text-align: right; }
+        .bonus-list-header .bonus { flex: 1; text-align: right; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+        @media (max-width: 640px) { .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
 
         .stat-card {
             background: var(--bg2);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             transition: var(--tr);
         }
         .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-g); margin-bottom: 5px; }
-        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
-        .stat-val-sm { font-size: 14px; }
+        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
 
-        /* ══════════════════════════════════════
-           LEADERBOARD
-        ══════════════════════════════════════ */
-        #leaderboard-section {
-            background: linear-gradient(135deg, #1a2a52 0%, #0d1a38 100%);
-            border: 1px solid rgba(91,143,255,0.15);
-            border-radius: 14px;
-            padding: 14px 16px;
-        }
-        [data-theme="light"] #leaderboard-section {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            border-color: transparent;
-        }
-        .lb-title { font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(255,220,100,0.9); margin-bottom: 10px; display: flex; align-items: center; gap: 5px; justify-content: space-between; }
-        .lb-month { font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 500; }
-        #leaderboard-container { display: flex; gap: 8px; }
-        .lb-item { flex: 1; text-align: center; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 6px; }
-        .lb-medal { font-size: 16px; line-height: 1; margin-bottom: 3px; }
-        .lb-name { font-size: 9px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .lb-amt { font-size: 8px; color: rgba(255,220,100,0.8); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
-
-        /* ══════════════════════════════════════
-           FILTER BAR
-        ══════════════════════════════════════ */
         .filter-bar {
             background: var(--bg2);
             border: 1px solid var(--border);
@@ -337,6 +420,7 @@
             gap: 8px;
             align-items: center;
             transition: var(--tr);
+            margin-bottom: 12px;
         }
         .g-select, .g-input {
             background: var(--surface);
@@ -354,9 +438,6 @@
         .g-input::placeholder { color: var(--text-g); }
         option { background: var(--bg2); color: var(--text); }
 
-        /* ══════════════════════════════════════
-           TABLE
-        ══════════════════════════════════════ */
         .table-wrap {
             background: var(--bg2);
             border: 1px solid var(--border);
@@ -406,7 +487,6 @@
         .action-del { color: var(--red); }
         .action-del:hover { background: var(--red-d); border-color: rgba(232,69,69,0.2); }
 
-        /* Pagination */
         .pagination {
             padding: 10px 14px;
             border-top: 1px solid var(--border);
@@ -426,9 +506,6 @@
         .page-btn:disabled { opacity: 0.35; pointer-events: none; }
         .page-btn-nav { padding: 4px 10px; }
 
-        /* ══════════════════════════════════════
-           MODALS
-        ══════════════════════════════════════ */
         .modal-bg {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.55);
@@ -448,7 +525,7 @@
             border-radius: 20px;
             padding: 24px;
             width: 100%;
-            max-width: 420px;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
             animation: popIn 0.22s cubic-bezier(.34,1.4,.64,1);
@@ -457,8 +534,29 @@
         }
         @keyframes popIn { from { opacity:0; transform:scale(0.93); } to { opacity:1; transform:scale(1); } }
 
-        .modal-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .modal-close { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-s); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.14s; }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-s);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.14s;
+        }
         .modal-close:hover { background: var(--surface-h); }
 
         .form-group { margin-bottom: 14px; }
@@ -470,15 +568,11 @@
             outline: none; transition: border-color 0.18s, background 0.18s;
         }
         .form-input:focus { border-color: var(--accent); background: var(--accent-d); }
-        .form-input::placeholder { color: var(--text-g); }
         .form-input[readonly] { opacity: 0.65; cursor: default; }
         .form-input-right { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; }
         input[type="datetime-local"].form-input { color-scheme: var(--cs, light); }
         [data-theme="dark"] input[type="datetime-local"].form-input { color-scheme: dark; }
 
-        /* ══════════════════════════════════════
-           DRAWER — ABSENSI
-        ══════════════════════════════════════ */
         .drawer-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.5);
@@ -501,7 +595,6 @@
             z-index: 56;
             max-height: 86vh;
             overflow-y: auto;
-            transition: var(--tr), transform 0.3s cubic-bezier(.32,1.1,.64,1);
         }
         .drawer.open { transform: translateY(0); }
         .drawer-header {
@@ -510,18 +603,14 @@
             border-bottom: 1px solid var(--border);
             padding: 14px 18px;
             display: flex; justify-content: space-between; align-items: center;
-            transition: var(--tr);
         }
-        .drawer-pill { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
 
-        /* Absensi cards */
         .att-card {
             background: var(--bg3);
             border: 1px solid var(--border);
             border-radius: 13px;
             padding: 12px 14px;
             margin-bottom: 8px;
-            transition: var(--tr);
         }
         .att-badge {
             display: inline-flex; align-items: center; gap: 4px;
@@ -559,17 +648,6 @@
             background: var(--surface);
             border: 1px solid var(--border);
         }
-        .att-log-date {
-            font-size:11px;
-            font-weight:600;
-            color: var(--text);
-        }
-        .att-log-time {
-            font-family:'JetBrains Mono', monospace;
-            font-size:11px;
-            color: var(--text-s);
-            white-space:nowrap;
-        }
         .att-empty {
             text-align:center;
             padding:20px 12px;
@@ -580,9 +658,6 @@
             background: var(--surface);
         }
 
-        /* ══════════════════════════════════════
-           TOAST
-        ══════════════════════════════════════ */
         #toast {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) scale(0.9);
             background: var(--bg2); border: 1px solid var(--border);
@@ -596,9 +671,6 @@
         #toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
         #toast.error { background: var(--red); color: white; border-color: var(--red); }
 
-        /* ══════════════════════════════════════
-           LOADING MODAL
-        ══════════════════════════════════════ */
         #loading-modal {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.5);
@@ -614,7 +686,6 @@
             padding: 28px 36px;
             text-align: center;
             box-shadow: var(--shadow-lg);
-            transition: var(--tr);
         }
         .loader-ring {
             width: 38px; height: 38px;
@@ -626,9 +697,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ══════════════════════════════════════
-           LOGIN PAGE
-        ══════════════════════════════════════ */
         #login-container {
             display: none;
             min-height: 100vh;
@@ -644,7 +712,6 @@
             width: 100%;
             max-width: 380px;
             box-shadow: var(--shadow-lg);
-            transition: var(--tr);
         }
         .login-logo {
             width: 68px; height: 68px; border-radius: 20px;
@@ -654,33 +721,17 @@
             box-shadow: 0 8px 28px var(--accent-gl);
         }
 
-        /* ══════════════════════════════════════
-           INITIAL LOADING
-        ══════════════════════════════════════ */
-        #initial-loading {
-            display: flex; min-height: 100vh;
-            align-items: center; justify-content: center;
-            flex-direction: column; gap: 12px;
-        }
-
-        /* ══════════════════════════════════════
-           CONTENT SPACING
-        ══════════════════════════════════════ */
-        .section-gap { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; }
-
-        /* ══════════════════════════════════════
-           ANIMATIONS
-        ══════════════════════════════════════ */
+        .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.22s ease both; }
         .slide-up { animation: slideUp 0.25s ease both; }
         @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         
-        .hidden { display: none !important; }
+        .section-gap { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; }
     </style>
 </head>
 <body>
 
-<!-- ══ TOPBAR (hidden until logged in) ══ -->
+<!-- TOPBAR -->
 <nav id="topbar" class="hidden">
     <div class="topbar-left">
         <div class="brand-info">
@@ -689,30 +740,30 @@
         </div>
     </div>
     <div class="topbar-right">
-        <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="btn btn-success hidden" style="font-size:11px;padding:7px 12px">
-            <i class="fas fa-calendar-check" style="font-size:10px"></i> Absensi
+        <button id="attendance-btn-admin" onclick="openDrawer('attendance')" class="btn btn-success hidden">
+            <i class="fas fa-calendar-check"></i> Absensi
         </button>
-        <button id="download-excel-btn" onclick="downloadExcel()" class="btn btn-ghost hidden" style="font-size:11px;padding:7px 12px">
-            <i class="fas fa-file-csv" style="font-size:10px"></i> CSV
+        <button id="download-excel-btn" onclick="downloadExcel()" class="btn btn-ghost hidden">
+            <i class="fas fa-file-csv"></i> CSV
         </button>
-        <button onclick="fetchAllData()" class="btn btn-ghost" style="font-size:11px;padding:7px 12px">
-            <i class="fas fa-sync-alt" style="font-size:10px"></i>
+        <button onclick="fetchAllData()" class="btn btn-ghost">
+            <i class="fas fa-sync-alt"></i>
         </button>
-        <button class="theme-toggle" id="topbar-theme" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-        <button onclick="logout()" class="btn btn-danger" style="font-size:11px;padding:7px 12px">
-            <i class="fas fa-sign-out-alt" style="font-size:10px"></i>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+        <button onclick="logout()" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Keluar
         </button>
     </div>
 </nav>
 
-<!-- ══ MAIN APP CONTAINER ══ -->
+<!-- MAIN APP CONTAINER -->
 <div id="app-container">
     <div id="initial-loading">
         <div class="loader-ring"></div>
         <p style="font-size:12.5px;color:var(--text-s)">Memuat aplikasi...</p>
     </div>
 
-    <!-- ══ LOGIN ══ -->
+    <!-- LOGIN -->
     <div id="login-container">
         <div class="login-card fade-in">
             <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
@@ -729,55 +780,78 @@
                 <label class="form-label">PIN</label>
                 <input type="password" id="login-pin" placeholder="Masukkan PIN" class="form-input" inputmode="numeric">
             </div>
-            <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;border-radius:13px;letter-spacing:0.01em">Masuk</button>
+            <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;border-radius:13px">Masuk</button>
             <p style="text-align:center;font-size:10.5px;color:var(--text-g);margin-top:18px;line-height:1.7">
-                🔐 <strong>Super Admin:</strong> Hubungi Admin<br>
+                🔐 <strong>Super Admin:</strong> admin / 170845<br>
                 👤 <strong>User Staff:</strong> Username &amp; PIN
             </p>
         </div>
     </div>
 
-    <!-- ══ MAIN CONTENT ══ -->
+    <!-- MAIN CONTENT -->
     <div id="main-content" class="hidden">
         <div class="main-wrapper">
             <div class="content-center">
                 <div class="section-gap">
-                    <!-- Leaderboard (admin only) -->
-                    <div id="leaderboard-section" class="hidden slide-up">
-                        <div class="lb-title">
-                            <span><i class="fas fa-crown" style="color:#ffd700;margin-right:5px"></i> LEADERBOARD BULAN INI</span>
-                            <span id="leaderboard-month" class="lb-month">-</span>
+                    
+                    <!-- DASHBOARD: Leaderboard Omset + Bonus Staff (2 kolom) -->
+                    <div class="dashboard-grid slide-up">
+                        <!-- Kiri: Top 3 Omset -->
+                        <div class="leaderboard-card">
+                            <div class="card-title">
+                                <i class="fas fa-crown" style="color:#ffd700"></i> TOP 3 OMSET BULAN INI
+                                <span id="leaderboard-month" class="card-month">-</span>
+                            </div>
+                            <div id="leaderboard-container" class="top3-container">
+                                <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.5);padding:8px">Memuat...</div>
+                            </div>
                         </div>
-                        <div id="leaderboard-container" style="display:flex;gap:8px">
-                            <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.5);padding:8px">Memuat...</div>
+
+                        <!-- Kanan: Top 3 Bonus Staff -->
+                        <div class="bonus-card">
+                            <div class="card-title">
+                                <i class="fas fa-gift" style="color:#ffd700"></i> TOP 3 BONUS STAFF (1.5%)
+                                <span id="bonus-month" class="card-month">-</span>
+                            </div>
+                            <div id="bonus-leaderboard-container" class="top3-container">
+                                <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.5);padding:8px">Memuat...</div>
+                            </div>
+                            <!-- Tombol Selengkapnya -->
+                            <button class="btn-more" onclick="showAllBonusModal()">
+                                <i class="fas fa-list-ul"></i> Selengkapnya
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Stats -->
+                    <!-- STATS (4 kolom) -->
                     <div class="stat-grid slide-up">
                         <div class="stat-card">
-                            <p class="stat-lbl">Transaksi</p>
+                            <p class="stat-lbl"><i class="fas fa-receipt"></i> Transaksi</p>
                             <p id="stat-total" class="stat-val">0</p>
                         </div>
                         <div class="stat-card">
-                            <p class="stat-lbl">Omzet</p>
-                            <p id="stat-omzet" class="stat-val stat-val-sm" style="color:var(--green)">Rp 0</p>
+                            <p class="stat-lbl"><i class="fas fa-chart-line"></i> Omzet</p>
+                            <p id="stat-omzet" class="stat-val" style="color:var(--green)">Rp 0</p>
                         </div>
                         <div class="stat-card">
-                            <p class="stat-lbl">User</p>
+                            <p class="stat-lbl"><i class="fas fa-users"></i> User Aktif</p>
                             <p id="stat-users" class="stat-val" style="color:var(--purple)">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-lbl"><i class="fas fa-gift"></i> Total Bonus</p>
+                            <p id="stat-total-bonus" class="stat-val" style="color:var(--gold)">Rp 0</p>
                         </div>
                     </div>
 
                     <!-- Filter Bar -->
-                    <div id="filter-section" class="filter-bar slide-up">
+                    <div class="filter-bar slide-up">
                         <select id="filter-period" onchange="setFilterPeriod()" class="g-select" style="flex:1;min-width:120px">
                             <option value="today" selected>📅 Hari Ini</option>
                             <option value="yesterday" id="opt-yesterday">📆 Kemarin</option>
-                            <option value="week"      id="opt-week">📊 Minggu Ini</option>
-                            <option value="month"     id="opt-month">📈 Bulan Ini</option>
-                            <option value="all"       id="opt-all">🌐 Semua</option>
-                            <option value="custom"    id="opt-custom">🎯 Custom</option>
+                            <option value="week" id="opt-week">📊 Minggu Ini</option>
+                            <option value="month" id="opt-month">📈 Bulan Ini</option>
+                            <option value="all" id="opt-all">🌐 Semua</option>
+                            <option value="custom" id="opt-custom">🎯 Custom</option>
                         </select>
                         <div id="date-range-container" style="display:none;align-items:center;gap:6px">
                             <input type="date" id="date-start" class="g-input" style="width:auto">
@@ -788,11 +862,11 @@
                         <input type="text" id="search-user" placeholder="Cari user…" class="g-input" style="width:110px">
                         <input type="text" id="search-note" placeholder="Cari item…" class="g-input" style="width:110px">
                         <button onclick="applySearch()" class="btn btn-primary" style="padding:7px 14px;font-size:12px">
-                            <i class="fas fa-search" style="font-size:10px"></i> Cari
+                            <i class="fas fa-search"></i> Cari
                         </button>
                     </div>
 
-                    <!-- Table -->
+                    <!-- Tabel Transaksi -->
                     <div class="table-wrap slide-up">
                         <div class="table-scroll">
                             <table>
@@ -808,16 +882,10 @@
                                     </tr>
                                 </thead>
                                 <tbody id="data-table">
-                                    <tr>
-                                        <td colspan="7" style="text-align:center;padding:40px;color:var(--text-g)">
-                                            <div class="loader-ring" style="margin:0 auto 10px"></div>
-                                            Memuat...
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-g)">Memuat...</td</tr>
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Pagination -->
                         <div class="pagination">
                             <span id="pagination-info" style="font-family:'JetBrains Mono',monospace">0 data</span>
                             <div style="display:flex;gap:5px;align-items:center">
@@ -827,20 +895,39 @@
                             </div>
                         </div>
                     </div>
-                    <!-- BOTTOM SPACER: Menambahkan ruang agar FAB tidak menghalangi konten terakhir -->
                     <div class="bottom-spacer"></div>
                 </div>
             </div>
         </div>
     </div>
-</div><!-- /app-container -->
+</div>
 
-<!-- ══ FAB — Add Transaksi ══ -->
+<!-- FAB -->
 <button id="floating-btn-container" onclick="showAddModal()" class="fab hidden" title="Tambah Transaksi">
     <i class="fas fa-plus"></i>
 </button>
 
-<!-- ══ DRAWER ABSENSI ══ -->
+<!-- MODAL SEMUA BONUS -->
+<div id="all-bonus-modal" class="modal-bg">
+    <div class="modal-box modal-bonus-list">
+        <div class="modal-title">
+            <span><i class="fas fa-gift" style="color:var(--gold);margin-right:8px"></i> Semua Bonus Staff</span>
+            <button onclick="closeAllBonusModal()" class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <p style="font-size:11px;color:var(--text-s);margin-bottom:12px">Periode: <strong id="modal-bonus-month">-</strong> | Bonus 1.5% dari omzet pribadi</p>
+        <div class="bonus-list-header">
+            <div class="rank">#</div>
+            <div class="name">Nama Staff</div>
+            <div class="omzet">Omzet</div>
+            <div class="bonus">Bonus</div>
+        </div>
+        <div id="all-bonus-list-container" class="bonus-list-container">
+            <div style="text-align:center;padding:20px;color:var(--text-g)">Memuat...</div>
+        </div>
+    </div>
+</div>
+
+<!-- DRAWER ABSENSI -->
 <div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
 <div id="drawer-attendance" class="drawer">
     <div class="drawer-header">
@@ -852,7 +939,6 @@
             <p style="font-size:11px;color:var(--text-s)">Periode: <strong id="attendance-period">Bulan Ini</strong></p>
             <p style="font-size:10px;color:var(--text-g);margin-top:2px">Total hari kerja: <span id="total-work-days">0</span> hari</p>
         </div>
-
         <div class="att-filter-grid">
             <select id="attendance-filter-period" onchange="applyAttendanceFilters()" class="g-select full">
                 <option value="today">📅 Hari Ini</option>
@@ -865,14 +951,11 @@
             <input type="date" id="attendance-date-end" class="g-input" onchange="applyAttendanceFilters()">
             <input type="text" id="attendance-search-user" class="g-input full" placeholder="Cari username / nama staff..." oninput="applyAttendanceFilters()">
         </div>
-
-        <div id="attendance-list">
-            <div style="text-align:center;padding:24px;color:var(--text-g)">Memuat data absensi...</div>
-        </div>
+        <div id="attendance-list">Memuat data absensi...</div>
     </div>
 </div>
 
-<!-- ══ MODAL TRANSAKSI ══ -->
+<!-- MODAL TRANSAKSI -->
 <div id="transaction-modal" class="modal-bg">
     <div class="modal-box">
         <div class="modal-title">
@@ -903,12 +986,12 @@
         <input type="hidden" id="edit-id">
         <div style="display:flex;gap:10px">
             <button onclick="closeModal()" class="btn btn-ghost" style="flex:1;padding:12px">Batal</button>
-            <button id="save-btn" onclick="saveTransaction()" class="btn btn-primary" style="flex:1;padding:12px">Simpan</button>
+            <button onclick="saveTransaction()" class="btn btn-primary" style="flex:1;padding:12px">Simpan</button>
         </div>
     </div>
 </div>
 
-<!-- ══ MODAL HAPUS ══ -->
+<!-- MODAL HAPUS -->
 <div id="delete-modal" class="modal-bg">
     <div class="modal-box" style="max-width:360px;text-align:center">
         <div style="width:52px;height:52px;background:var(--red-d);border:1px solid rgba(232,69,69,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;color:var(--red)">
@@ -924,7 +1007,7 @@
     </div>
 </div>
 
-<!-- ══ LOADING MODAL ══ -->
+<!-- LOADING MODAL -->
 <div id="loading-modal">
     <div class="loader-box">
         <div class="loader-ring"></div>
@@ -932,15 +1015,15 @@
     </div>
 </div>
 
-<!-- ══ TOAST ══ -->
+<!-- TOAST -->
 <div id="toast">Notifikasi</div>
 
 <script>
-    // ══════════════════ KONFIGURASI ══════════════════
+    // ========== KONFIGURASI ==========
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwhHGVQ3RpgCx6FIosopNHO6uE3UAh6BGOFOxd6Eo65levqmbqeLi_oDAqu-Aqbbx1_Xw/exec";
     const SUPER_ADMIN = { username: "admin", pin: "170845" };
+    const BONUS_PERCENT = 1.5;
 
-    // State
     let allTransactions = [], filteredTransactions = [];
     let allUsers = [], allAttendance = [];
     let currentPage = 1, rowsPerPage = 15;
@@ -950,8 +1033,9 @@
     let pendingDeleteId = null;
     let currentUser = null, isAdmin = false;
     let attendanceFilter = { period: 'month', start: null, end: null, query: '' };
+    let cachedAllStaffBonus = []; // cache untuk modal
 
-    // ══════════════════ THEME ══════════════════
+    // ========== THEME ==========
     const getTheme = () => localStorage.getItem('admin-theme') || 'light';
     const applyTheme = t => {
         document.documentElement.setAttribute('data-theme', t);
@@ -963,7 +1047,7 @@
     const toggleTheme = () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
     (function(){ applyTheme(getTheme()); })();
 
-    // ══════════════════ HELPERS ZONA WAKTU WIB (UTC+7) ══════════════════
+    // ========== ZONA WAKTU WIB ==========
     function getJakartaParts(date = new Date()) {
         return new Intl.DateTimeFormat('sv-SE', {
             timeZone: 'Asia/Jakarta',
@@ -1014,14 +1098,6 @@
         return `${b[parseInt(p.month,10)-1]} ${p.year}`;
     }
     
-    function getDaysUntilToday(y, m) {
-        const today = getTodayDate();
-        const td = parseInt(today.split('-')[2]);
-        const cy = parseInt(today.split('-')[0]);
-        const cm = parseInt(today.split('-')[1]);
-        return (y===cy && m===cm) ? td : new Date(y, m, 0).getDate();
-    }
-    
     function getWIBForInput() {
         const p = getJakartaParts();
         return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
@@ -1056,7 +1132,7 @@
     }
     function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 
-    // ══════════════════ TOAST & LOADING ══════════════════
+    // ========== TOAST & LOADING ==========
     let toastTimer;
     function showToast(msg, isError=false) {
         const t = document.getElementById('toast');
@@ -1072,25 +1148,149 @@
         m.style.display = show ? 'flex' : 'none';
     }
 
-    // ══════════════════ FUNGSI KIRIM KE GAS (DENGAN RETRY) ══════════════════
+    // ========== KIRIM KE GAS ==========
     async function postToGAS(payload) {
-        // Menggunakan mode 'no-cors' tetapi kita tidak bisa membaca responsnya
-        // Kita akan mengirim dengan fetch biasa dan mengabaikan respons karena mode no-cors
-        // Untuk memastikan data terkirim, kita lakukan dengan timestamp unik
-        const url = GAS_WEB_APP_URL;
-        const response = await fetch(url, {
+        await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
-            mode: 'no-cors', // Karena CORS di Google Apps Script
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        // Karena mode no-cors, response tidak bisa dibaca, kita asumsikan sukses
-        // Tapi kita tambahkan delay kecil untuk memastikan
         await new Promise(resolve => setTimeout(resolve, 800));
         return { success: true };
     }
 
-    // ══════════════════ DOWNLOAD CSV ══════════════════
+    // ========== BONUS PER USER ==========
+    function getUserOmzetThisMonth(username) {
+        const start = getStartOfMonth();
+        const today = getTodayDate();
+        return allTransactions
+            .filter(t => t.user === username)
+            .filter(t => {
+                const txDate = (t.time || '').slice(0,10);
+                return txDate >= start && txDate <= today;
+            })
+            .reduce((s,t) => s + (t.amount || 0), 0);
+    }
+
+    function getUserBonusThisMonth(username) {
+        const omzet = getUserOmzetThisMonth(username);
+        return Math.floor(omzet * BONUS_PERCENT / 100);
+    }
+
+    function getAllUsersBonus() {
+        const users = [...allUsers];
+        const transactionUsers = new Set(allTransactions.map(t => t.user));
+        for (const username of transactionUsers) {
+            if (!users.find(u => u.username === username)) {
+                users.push({ username: username, name: username });
+            }
+        }
+        
+        const result = users.map(user => ({
+            username: user.username,
+            name: user.name || user.username,
+            omzet: getUserOmzetThisMonth(user.username),
+            bonus: getUserBonusThisMonth(user.username)
+        })).filter(u => u.omzet > 0 || u.bonus > 0)
+          .sort((a,b) => b.omzet - a.omzet);
+        
+        cachedAllStaffBonus = result;
+        return result;
+    }
+
+    function getTotalBonusAllUsers() {
+        return getAllUsersBonus().reduce((s,u) => s + u.bonus, 0);
+    }
+
+    // ========== RENDER LEADERBOARD & BONUS ==========
+    function renderLeaderboardAndBonus() {
+        if (!isAdmin) return;
+        
+        const month = getCurrentMonthYear();
+        document.getElementById('leaderboard-month').innerText = month;
+        document.getElementById('bonus-month').innerText = month;
+        
+        // Get all staff data sorted by omzet
+        const allStaff = getAllUsersBonus();
+        
+        // === TOP 3 OMSET ===
+        const top3Omzet = allStaff.slice(0, 3);
+        const medals = ['🥇', '🥈', '🥉'];
+        let omzetHtml = '';
+        for (let i = 0; i < 3; i++) {
+            if (top3Omzet[i] && top3Omzet[i].omzet > 0) {
+                omzetHtml += `<div class="top3-item">
+                    <div class="top3-medal">${medals[i]}</div>
+                    <div class="top3-name">${escapeHtml(top3Omzet[i].name.split(' ')[0])}</div>
+                    <div class="top3-value">Rp ${formatRupiah(Math.floor(top3Omzet[i].omzet/1000))}K</div>
+                </div>`;
+            } else {
+                omzetHtml += `<div class="top3-item" style="opacity:.4">
+                    <div class="top3-medal">❓</div>
+                    <div class="top3-name">-</div>
+                    <div class="top3-value">-</div>
+                </div>`;
+            }
+        }
+        document.getElementById('leaderboard-container').innerHTML = omzetHtml;
+        
+        // === TOP 3 BONUS ===
+        const top3Bonus = [...allStaff].sort((a,b) => b.bonus - a.bonus).slice(0, 3);
+        let bonusHtml = '';
+        for (let i = 0; i < 3; i++) {
+            if (top3Bonus[i] && top3Bonus[i].bonus > 0) {
+                bonusHtml += `<div class="top3-item">
+                    <div class="top3-medal">${medals[i]}</div>
+                    <div class="top3-name">${escapeHtml(top3Bonus[i].name.split(' ')[0])}</div>
+                    <div class="top3-value">Rp ${formatRupiah(Math.floor(top3Bonus[i].bonus/1000))}K</div>
+                    <div class="top3-bonus">🎁 ${formatRupiah(top3Bonus[i].bonus)}</div>
+                </div>`;
+            } else {
+                bonusHtml += `<div class="top3-item" style="opacity:.4">
+                    <div class="top3-medal">❓</div>
+                    <div class="top3-name">-</div>
+                    <div class="top3-value">-</div>
+                </div>`;
+            }
+        }
+        document.getElementById('bonus-leaderboard-container').innerHTML = bonusHtml;
+        
+        // Update total bonus di stat card
+        document.getElementById('stat-total-bonus').innerHTML = `Rp ${formatRupiah(getTotalBonusAllUsers())}`;
+    }
+
+    // ========== MODAL SEMUA BONUS ==========
+    function showAllBonusModal() {
+        if (!isAdmin) return;
+        
+        const month = getCurrentMonthYear();
+        document.getElementById('modal-bonus-month').innerText = month;
+        
+        const allStaff = getAllUsersBonus();
+        const container = document.getElementById('all-bonus-list-container');
+        
+        if (allStaff.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-g)">Belum ada data transaksi bulan ini</div>';
+        } else {
+            container.innerHTML = allStaff.map((staff, idx) => `
+                <div class="bonus-list-item">
+                    <div class="bonus-list-rank">${idx+1}</div>
+                    <div class="bonus-list-name">${escapeHtml(staff.name)}</div>
+                    <div class="bonus-list-omzet">Rp ${formatRupiah(staff.omzet)}</div>
+                    <div class="bonus-list-bonus">Rp ${formatRupiah(staff.bonus)}</div>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('all-bonus-modal').classList.add('show');
+    }
+    
+    function closeAllBonusModal() {
+        document.getElementById('all-bonus-modal').classList.remove('show');
+    }
+
+    // ========== DOWNLOAD CSV ==========
     function downloadExcel() {
         if (!isAdmin) { showToast("Hanya Super Admin!", true); return; }
         if (!filteredTransactions.length) { showToast("Tidak ada data!", true); return; }
@@ -1105,7 +1305,7 @@
         showToast(`✅ Download ${filteredTransactions.length} transaksi`);
     }
 
-    // ══════════════════ LOGIN ══════════════════
+    // ========== LOGIN ==========
     async function handleLogin() {
         const username = document.getElementById('login-username').value.trim();
         const pin = document.getElementById('login-pin').value.trim();
@@ -1140,10 +1340,9 @@
     async function initAdminApp() {
         isAdmin = true;
         document.getElementById('header-name').innerHTML = '<i class="fas fa-crown" style="color:var(--amber);margin-right:4px;font-size:11px"></i> Super Admin';
-        document.getElementById('header-role').innerHTML = '<span style="background:var(--accent-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--accent)"><i class="fas fa-key" style="font-size:8px;margin-right:3px"></i> Akses Penuh</span>';
+        document.getElementById('header-role').innerHTML = '<span style="background:var(--accent-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--accent)"><i class="fas fa-key"></i> Akses Penuh</span>';
         document.getElementById('attendance-btn-admin').classList.remove('hidden');
         document.getElementById('download-excel-btn').classList.remove('hidden');
-        document.getElementById('leaderboard-section').classList.remove('hidden');
         document.getElementById('floating-btn-container').classList.remove('hidden');
         ['opt-yesterday','opt-week','opt-month','opt-all','opt-custom'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display=''; });
         await fetchAllData();
@@ -1156,10 +1355,9 @@
     async function initUserApp() {
         isAdmin = false;
         document.getElementById('header-name').innerHTML = '<i class="fas fa-user" style="color:var(--accent);margin-right:4px;font-size:11px"></i> ' + currentUser.name;
-        document.getElementById('header-role').innerHTML = '<span style="background:var(--green-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--green)"><i class="fas fa-briefcase" style="font-size:8px;margin-right:3px"></i> Staff</span>';
+        document.getElementById('header-role').innerHTML = '<span style="background:var(--green-d);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:600;color:var(--green)"><i class="fas fa-briefcase"></i> Staff</span>';
         document.getElementById('attendance-btn-admin').classList.add('hidden');
         document.getElementById('download-excel-btn').classList.add('hidden');
-        document.getElementById('leaderboard-section').classList.add('hidden');
         document.getElementById('floating-btn-container').classList.add('hidden');
         ['opt-yesterday','opt-week','opt-month','opt-all','opt-custom'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
         document.getElementById('filter-period').value = 'today';
@@ -1180,12 +1378,12 @@
         document.getElementById('floating-btn-container').classList.add('hidden');
         document.getElementById('attendance-btn-admin').classList.add('hidden');
         document.getElementById('download-excel-btn').classList.add('hidden');
-        document.getElementById('leaderboard-section').classList.add('hidden');
         document.getElementById('login-username').value = '';
         document.getElementById('login-pin').value = '';
+        closeAllBonusModal();
     }
 
-    // ══════════════════ FETCH DATA ══════════════════
+    // ========== FETCH DATA ==========
     async function fetchAllData() {
         showToast("🔄 Mengambil data...");
         try {
@@ -1200,7 +1398,7 @@
             allUsers        = usrD.success && usrD.data ? usrD.data : [];
             updateUserDatalist();
             applyFilters();
-            renderLeaderboard();
+            renderLeaderboardAndBonus();
             showToast(`✅ ${allTransactions.length} transaksi`);
         } catch(e) { showToast("❌ Gagal mengambil data", true); allTransactions=[]; renderTable(); }
     }
@@ -1223,35 +1421,7 @@
         if (dl && isAdmin) dl.innerHTML = allUsers.map(u=>`<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`).join('');
     }
 
-    // ══════════════════ LEADERBOARD ══════════════════
-    function getUserOmzetThisMonth(username) {
-        const start = getStartOfMonth(), today = getTodayDate();
-        return allTransactions.filter(t=>t.user===username).filter(t=>(t.time||'').slice(0,10)>=start&&(t.time||'').slice(0,10)<=today).reduce((s,t)=>s+(t.amount||0),0);
-    }
-
-    function renderLeaderboard() {
-        if (!isAdmin) return;
-        const c = document.getElementById('leaderboard-container');
-        document.getElementById('leaderboard-month').innerText = getCurrentMonthYear();
-        if (!allUsers.length) { c.innerHTML='<div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.4);padding:8px">Belum ada data</div>'; return; }
-        const stats = allUsers.map(u=>({...u, omzet:getUserOmzetThisMonth(u.username)})).sort((a,b)=>b.omzet-a.omzet);
-        const medals = ['🥇','🥈','🥉'];
-        let html = '';
-        for (let i=0; i<3; i++) {
-            if (stats[i]) {
-                html += `<div class="lb-item">
-                    <div class="lb-medal">${medals[i]}</div>
-                    <div class="lb-name">${escapeHtml(stats[i].name.split(' ')[0])}</div>
-                    <div class="lb-amt">Rp ${formatRupiah(Math.floor(stats[i].omzet/1000))}K</div>
-                </div>`;
-            } else {
-                html += `<div class="lb-item" style="opacity:.3"><div class="lb-medal">❓</div><div class="lb-name">-</div><div class="lb-amt">-</div></div>`;
-            }
-        }
-        c.innerHTML = html;
-    }
-
-    // ══════════════════ FILTERS ══════════════════
+    // ========== FILTERS ==========
     function setFilterPeriod() {
         if (!isAdmin) return;
         currentFilter = document.getElementById('filter-period').value;
@@ -1325,11 +1495,12 @@
         const omzet = filteredTransactions.reduce((s,t)=>s+(t.amount||0),0);
         const users = new Set(filteredTransactions.map(t=>t.user));
         document.getElementById('stat-total').innerText = total;
-        document.getElementById('stat-omzet').innerHTML = total > 999 ? `<span style="font-size:13px">Rp ${formatRupiah(omzet)}</span>` : `Rp ${formatRupiah(omzet)}`;
+        document.getElementById('stat-omzet').innerHTML = `Rp ${formatRupiah(omzet)}`;
         document.getElementById('stat-users').innerText = isAdmin ? users.size : 1;
+        if (isAdmin) renderLeaderboardAndBonus();
     }
 
-    // ══════════════════ RENDER TABLE ══════════════════
+    // ========== RENDER TABLE ==========
     function renderTable() {
         const tbody = document.getElementById('data-table');
         const startIdx = (currentPage-1)*rowsPerPage, endIdx = startIdx+rowsPerPage;
@@ -1344,7 +1515,6 @@
             tbody.innerHTML = pageData.map((t,i)=>{
                 const canDel = isAdmin || t.user===currentUser?.username;
                 const canEdit= isAdmin || t.user===currentUser?.username;
-                // Escape note untuk aman di JavaScript string
                 const safeNote = escapeHtml(t.note || '-').replace(/'/g, "\\'");
                 const safeAmount = formatRupiah(t.amount);
                 const safeUser = escapeHtml(t.user || '-');
@@ -1388,7 +1558,7 @@
     function prevPage() { if(currentPage>1){currentPage--;renderTable();} }
     function nextPage() { const t=Math.ceil(filteredTransactions.length/rowsPerPage); if(currentPage<t){currentPage++;renderTable();} }
 
-    // ══════════════════ CRUD ══════════════════
+    // ========== CRUD ==========
     function showAddModal() {
         if (!isAdmin) { showToast("Anda tidak memiliki izin!", true); return; }
         document.getElementById('modal-title-text').innerText = 'Tambah Transaksi';
@@ -1438,9 +1608,7 @@
         showLoading(true, "Menyimpan...");
         try {
             if (id) {
-                // DELETE dulu yang lama (hapus berdasarkan ID)
                 await postToGAS({ type: 'delete_transaction', payload: { serverId: id.toString() } });
-                // Lalu tambahkan yang baru
                 await postToGAS({ type: 'transaction', payload: { user: username, name, amount, note, time } });
                 showToast("✅ Transaksi diupdate!");
             } else {
@@ -1482,7 +1650,7 @@
 
     function closeModal() { document.getElementById('transaction-modal').classList.remove('show'); }
 
-    // ══════════════════ DRAWER ABSENSI ══════════════════
+    // ========== DRAWER ABSENSI (ringkas) ==========
     function openDrawer(type) {
         if (!isAdmin) return;
         if (type === 'attendance') {
@@ -1495,12 +1663,11 @@
             if (endEl) endEl.value = attendanceFilter.end || getTodayDate();
             if (queryEl) queryEl.value = attendanceFilter.query || '';
             applyAttendanceFilters();
-        } else {
-            renderAttendanceList();
         }
         document.getElementById('drawer-overlay').classList.add('open');
         document.getElementById(`drawer-${type}`).classList.add('open');
     }
+    
     function closeDrawer() {
         document.getElementById('drawer-overlay').classList.remove('open');
         document.getElementById('drawer-attendance').classList.remove('open');
@@ -1570,40 +1737,23 @@
         renderAttendanceList();
     }
 
-    function getUserAttendanceThisMonth(username) {
-        const range = getAttendanceRangeInfo('month');
-        return getAttendanceFilteredRecords(username, range);
-    }
-
     function buildAttendanceUsers() {
         const map = new Map();
-
         allUsers.forEach(u => {
             const username = (u.username || '').toString();
             if (!username) return;
-            map.set(username, {
-                username,
-                name: u.name || username
-            });
+            map.set(username, { username, name: u.name || username });
         });
-
         allAttendance.forEach(a => {
             const username = (a.user || '').toString();
             if (!username) return;
-            if (!map.has(username)) {
-                map.set(username, {
-                    username,
-                    name: a.name || username
-                });
-            }
+            if (!map.has(username)) map.set(username, { username, name: a.name || username });
         });
-
         return Array.from(map.values());
     }
 
     function renderAttendanceList() {
         const container = document.getElementById('attendance-list'); if(!container) return;
-
         const periodEl = document.getElementById('attendance-filter-period');
         const startEl = document.getElementById('attendance-date-start');
         const endEl = document.getElementById('attendance-date-end');
@@ -1673,7 +1823,6 @@
                         <p style="font-size:9px;color:var(--text-g);margin-top:6px">Jam hari ini: <strong style="color:var(--text)">${jamToday}</strong></p>
                     </div>
                 </div>
-
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
                     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
                         <div style="font-size:9px;color:var(--text-g);text-transform:uppercase;font-weight:700;letter-spacing:.04em">Hadir Bulan Ini</div>
@@ -1684,13 +1833,11 @@
                         <div style="font-size:20px;font-weight:800;color:var(--red);font-family:'JetBrains Mono',monospace;margin-top:4px">${u.tidakHadir}</div>
                     </div>
                 </div>
-
                 <div class="progress-track"><div class="progress-fill" style="width:${u.pct}%;background:${color}"></div></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px">
                     <div style="font-size:10px;color:var(--text-s)">Persentase hadir bulan ini</div>
                     <div style="font-size:10px;font-weight:700;color:${color};font-family:'JetBrains Mono',monospace">${u.pct}% · ${u.hadirDays}/${monthRange.totalDays} hari</div>
                 </div>
-
                 <div style="font-size:10px;font-weight:700;color:var(--text-s);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Detail Absen (${detailRange.label})</div>
                 <div class="att-sublist">
                     ${u.detailRecs.length > 0
@@ -1711,14 +1858,14 @@
         }).join('');
     }
 
-    // ══════════════════ KEYBOARD SHORTCUT ══════════════════
+    // ========== KEYBOARD SHORTCUT ==========
     document.addEventListener('keydown', e => {
         if (e.key === 'Enter' && document.activeElement.id === 'login-pin') handleLogin();
         if (e.key === 'Enter' && (document.activeElement.id==='search-user'||document.activeElement.id==='search-note')) applySearch();
-        if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeDrawer(); }
+        if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeDrawer(); closeAllBonusModal(); }
     });
 
-    // ══════════════════ INIT ══════════════════
+    // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('initial-loading').style.display = 'none';
         document.getElementById('login-container').style.display = 'flex';
